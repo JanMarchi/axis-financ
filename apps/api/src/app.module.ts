@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bull';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -14,6 +15,7 @@ import { PluggyModule } from './pluggy/pluggy.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { WorkersModule } from './workers/workers.module';
 import { AiModule } from './ai/ai.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -27,6 +29,7 @@ import { AiModule } from './ai/ai.module';
         port: parseInt(process.env.REDIS_PORT || '6379'),
       } as any,
     }),
+    ScheduleModule.forRoot(),
     AuthModule,
     AccountsModule,
     TransactionsModule,
@@ -38,6 +41,7 @@ import { AiModule } from './ai/ai.module';
     WebhooksModule,
     WorkersModule,
     AiModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

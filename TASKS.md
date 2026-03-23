@@ -625,30 +625,30 @@
 
 **Meta:** Lembrete de bill via WhatsApp → usuário responde SIM → bill marcada como paga.
 
-- [ ] **FASE-5-001** — Serviço de notificações multi-canal
+- [x] **FASE-5-001** — Serviço de notificações multi-canal
   `NotificationsService.send()`: cria registro na tabela, enfileira job `notifications:dispatch`
   Notification Worker: router por channel com retry 3x + fallback email
 
-- [ ] **FASE-5-002** — Gateway WhatsApp abstrato
+- [x] **FASE-5-002** — Gateway WhatsApp abstrato
   Interface `WhatsAppGateway` com `sendMessage()` e `sendTemplate()`
   Implementação `ZApiGateway`: POST para Z-API com rate limit (1 msg/usuário/tipo/dia via Redis)
   Formatar número para E.164 (+55...)
 
-- [ ] **FASE-5-003** — Webhook WhatsApp inbound
+- [x] **FASE-5-003** — Webhook WhatsApp inbound
   `POST /webhooks/whatsapp`: validar token, parsear sender + body
   "SIM" (case-insensitive) → `BillsService.confirmPaymentByWhatsApp(userId)`
   "NÃO"/"NAO" → responder com opção de reagendamento
   Número desconhecido → log + ignorar
 
-- [ ] **FASE-5-004** — Cron de lembretes de bills
+- [x] **FASE-5-004** — Cron de lembretes de bills
   Cron `0 8 * * *` (08:00 BRT): bills com `dueDate = hoje + N dias` e `notificationSentAt IS NULL`
   Template: "Oi [Nome]! 📅 *[Nome da conta]* vence em [X] dias — R$ [valor]. Responda *SIM* para confirmar."
   Atualizar `notificationSentAt` após envio
 
-- [ ] **FASE-5-005** — Preferências de notificação (Frontend)
+- [x] **FASE-5-005** — Preferências de notificação (Frontend)
   Seção em `/settings`: toggle WhatsApp, slider "avisar X dias antes", número do WhatsApp, botão teste
 
-- [ ] **FASE-5-006** — Commit da Fase 5
+- [x] **FASE-5-006** — Commit da Fase 5
 
   ```bash
   git add -A && git commit -m "feat(fase-5): notificações, whatsapp lembretes e confirmação"
