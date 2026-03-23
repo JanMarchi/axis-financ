@@ -1,0 +1,99 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║     🚀 AXIS FINANCE - COMECE AQUI (Sem nada instalado)       ║
+║                                                               ║
+║              Apenas 3 cliques para começar!                  ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+
+════════════════════════════════════════════════════════════════
+
+                      ⚡ SUPER SIMPLES ⚡
+
+════════════════════════════════════════════════════════════════
+
+
+🔧 CLIQUE 1: INSTALAR POSTGRESQL + REDIS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Na pasta do projeto, procure por:
+
+   ⚙️ INSTALAR_TUDO.vbs
+
+Clique com botão DIREITO
+Escolha: "Executar como administrador"
+
+Aguarde a instalação terminar (~5-10 minutos)
+Um popup dirá "INSTALAÇÃO CONCLUÍDA COM SUCESSO!"
+
+
+🎯 CLIQUE 2: CRIAR ATALHO NA ÁREA DE TRABALHO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Na mesma pasta, procure por:
+
+   📄 CRIAR_ATALHO_AREA_TRABALHO.bat
+
+Clique com botão DIREITO
+Escolha: "Executar como administrador"
+
+Aguarde a mensagem de sucesso
+
+
+🚀 CLIQUE 3: INICIAR TUDO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Vá para a ÁREA DE TRABALHO
+
+Clique duplo no novo atalho:
+
+   🚀 Axis Finance
+
+Aguarde ~30 segundos
+
+PRONTO! ✨
+- Backend inicia
+- Frontend inicia
+- Navegador abre
+- Você pode fazer LOGIN/REGISTER
+
+
+════════════════════════════════════════════════════════════════
+
+                    SÓ ISSO!
+              Depois é só clicar no atalho
+
+════════════════════════════════════════════════════════════════
+
+
+❓ DÚVIDAS?
+
+1. Leia este arquivo:
+   COMO_INICIAR.md
+
+2. Ou este:
+   🚀_LEIA_PRIMEIRO.txt
+
+3. Ou visite:
+   https://github.com/JanMarchi/axis-financ/issues
+
+
+🎮 DADOS PARA LOGIN
+
+Email:  teste@axis.local
+Senha:  Teste@123
+
+
+✨ Dicas:
+
+• Primeira execução é mais lenta (instalações)
+• Próximas são rápidas (tudo já está instalado)
+• Não feche as janelas de terminal que abrirem
+• Para parar, feche essas janelas
+
+════════════════════════════════════════════════════════════════
+
+        Comece agora! 3 cliques = Tudo rodando! 🚀
+
+════════════════════════════════════════════════════════════════
