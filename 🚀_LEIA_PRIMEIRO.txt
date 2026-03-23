@@ -1,0 +1,164 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║     🚀 AXIS FINANCE - UM CLIQUE PARA INICIAR! 🚀            ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+📝 PASSO 1: CRIAR ATALHO NA ÁREA DE TRABALHO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Abra esta pasta no Windows Explorer
+   C:\Users\intel\Documents\jan\axis_financ
+
+2. Procure pelo arquivo:
+   📄 CRIAR_ATALHO_AREA_TRABALHO.bat
+
+3. Clique com botão DIREITO nele
+
+4. Selecione: "Executar como administrador"
+
+5. Aguarde a mensagem de sucesso
+
+✨ Pronto! Um novo atalho foi criado na Área de Trabalho
+
+
+🎯 PASSO 2: INICIAR TUDO COM UM CLIQUE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Vá para a ÁREA DE TRABALHO
+
+2. Procure pelo atalho:
+   🚀 Axis Finance
+
+3. CLIQUE DUPLO nele
+
+4. Uma janela vai aparecer dizendo "Iniciando..."
+
+5. Aguarde ~30 segundos
+
+6. 2 janelas de terminal vão abrir
+   (Backend e Frontend)
+
+7. Seu navegador abrirá automaticamente em:
+   http://localhost:3000
+
+8. ✨ PRONTO! Você pode fazer login/register!
+
+
+⚠️  IMPORTANTE - Leia antes de começar:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ Verifique PRIMEIRO se você tem:
+
+   ✓ PostgreSQL rodando (WSL ou nativo)
+     Se não tem, veja abaixo "Instalar PostgreSQL"
+
+   ✓ Redis rodando (WSL ou nativo)
+     Se não tem, veja abaixo "Instalar Redis"
+
+
+🔧 INSTALAR POSTGRESQL E REDIS (WSL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Abra Windows Terminal (ou PowerShell)
+
+2. Digite:
+   wsl
+
+3. Você entrou no WSL. Agora execute:
+   sudo apt update && sudo apt install postgresql-16 redis-server
+
+4. Inicie os serviços:
+   sudo service postgresql start
+   sudo service redis-server start
+
+5. Verifique:
+   psql -U postgres -c "\q"
+   redis-cli ping
+
+Se funcionar, pode fechar o WSL e voltar para o PASSO 2 acima.
+
+
+❓ PRECISA DE AJUDA?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📖 Leia:
+   COMO_INICIAR.md
+   (Instruções completas com troubleshooting)
+
+💻 Ou execute manualmente:
+   QUICKSTART_LOCAL.md
+   (Se preferir controlar cada passo)
+
+🌐 Ou visite:
+   https://github.com/JanMarchi/axis-financ
+
+
+🎮 DADOS DE TESTE PARA FAZER LOGIN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Email:     teste@axis.local
+Senha:     Teste@123
+Nome:      João Silva
+CPF:       12345678901
+Renda:     R$ 3.000
+
+
+✨ FUNCIONALIDADES DISPONÍVEIS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Registro e Login
+✅ Dashboard
+✅ Transações (criar, editar, deletar)
+✅ Contas bancárias
+✅ Contas a pagar
+✅ Orçamentos
+✅ Metas/Goals
+✅ Relatórios com gráficos
+✅ Planos de preço (Stripe)
+✅ Design System Premium
+
+❌ Não funciona sem API keys:
+   - IA Na_th (precisa Anthropic API)
+   - Open Finance (precisa Pluggy)
+   - Stripe pagamentos (precisa Stripe API)
+   - WhatsApp (precisa Z-API)
+
+
+🎉 RESUMO DO FLUXO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Executar: CRIAR_ATALHO_AREA_TRABALHO.bat
+   ↓
+2. Clicar duplo: 🚀 Axis Finance (na Área de Trabalho)
+   ↓
+3. Aguardar 30 segundos
+   ↓
+4. Automaticamente:
+   • PostgreSQL é verificado
+   • Redis é verificado
+   • Database é criado
+   • Migrations são executadas
+   • Backend inicia (port 3001)
+   • Frontend inicia (port 3000)
+   • Navegador abre (http://localhost:3000)
+   ↓
+5. Fazer login/register
+   ↓
+6. ✨ PRONTO!
+
+
+🛑 PARA PARAR TUDO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Feche as 2 janelas de terminal que abriram (Backend + Frontend)
+
+Pronto! Tudo parou.
+
+
+════════════════════════════════════════════════════════════════
+
+         Dúvidas? Leia COMO_INICIAR.md (nesta pasta)
+
+════════════════════════════════════════════════════════════════
