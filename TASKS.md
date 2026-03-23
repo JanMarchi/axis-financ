@@ -704,32 +704,32 @@
 
 **Meta:** Pagamento premium funcional end-to-end com Stripe.
 
-- [ ] **FASE-7-001** — Módulo Subscriptions (NestJS)
+- [x] **FASE-7-001** — Módulo Subscriptions (NestJS)
   `POST /subscriptions/checkout`: cria Stripe Checkout Session
   `POST /subscriptions/portal`: cria Billing Portal session
   `DELETE /subscriptions/me`: cancela assinatura
 
-- [ ] **FASE-7-002** — Webhook Stripe
+- [x] **FASE-7-002** — Webhook Stripe
   Validar `stripe-signature`, processar com idempotency key (Redis)
   Eventos: `subscription.created/updated/deleted`, `invoice.payment_failed`, `trial_will_end`
 
-- [ ] **FASE-7-003** — Guard de features premium
+- [x] **FASE-7-003** — Guard de features premium
   `@RequiresPremium()` decorator + guard
   Aplicar em: `/ai/chat`, `/pluggy/*`, `/reports/export`, transações além de 50/mês
 
-- [ ] **FASE-7-004** — Página de planos (Frontend)
+- [x] **FASE-7-004** — Página de planos (Frontend)
   Cards: Free · Premium Mensal · Premium Anual
   Highlight do plano anual: "Economize 2 meses" badge em accent-500
   CTA "Assinar" → Stripe Checkout, "Gerenciar" → Stripe Portal
 
-- [ ] **FASE-7-005** — Bloqueios de features (Frontend)
+- [x] **FASE-7-005** — Bloqueios de features (Frontend)
   `<PremiumGate>` component: blur + overlay + CTA de upgrade
   Aplicar em: chat (após 10 msgs), Open Finance, exportação, relatórios longos
 
-- [ ] **FASE-7-006** — Emails transacionais
+- [x] **FASE-7-006** — Emails transacionais
   Configurar Resend: boas-vindas, assinatura ativa, trial expirando, falha de pagamento
 
-- [ ] **FASE-7-007** — Commit da Fase 7
+- [x] **FASE-7-007** — Commit da Fase 7
 
   ```bash
   git add -A && git commit -m "feat(fase-7): billing stripe, planos premium, emails"

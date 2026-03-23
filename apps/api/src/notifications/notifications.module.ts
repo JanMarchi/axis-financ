@@ -3,6 +3,7 @@ import { BullModule } from '@nestjs/bull';
 import { NotificationsService } from './notifications.service';
 import { NotificationsController } from './notifications.controller';
 import { ZApiGateway } from './whatsapp.gateway';
+import { EmailService } from './email.service';
 import { PrismaService } from '@/prisma/prisma.service';
 
 @Module({
@@ -12,7 +13,7 @@ import { PrismaService } from '@/prisma/prisma.service';
     }),
   ],
   controllers: [NotificationsController],
-  providers: [NotificationsService, ZApiGateway, PrismaService],
-  exports: [NotificationsService, ZApiGateway],
+  providers: [NotificationsService, ZApiGateway, EmailService, PrismaService],
+  exports: [NotificationsService, ZApiGateway, EmailService],
 })
 export class NotificationsModule {}

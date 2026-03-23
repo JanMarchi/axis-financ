@@ -16,6 +16,7 @@ import { WebhooksModule } from './webhooks/webhooks.module';
 import { WorkersModule } from './workers/workers.module';
 import { AiModule } from './ai/ai.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { BillingModule } from './billing/billing.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     WorkersModule,
     AiModule,
     NotificationsModule,
+    BillingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
