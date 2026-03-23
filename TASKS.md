@@ -660,31 +660,31 @@
 
 **Meta:** Chat funcional com Na_th que lê dados reais e executa ações confirmadas.
 
-- [ ] **FASE-6-001** — Módulo AI (NestJS)
+- [x] **FASE-6-001** — Módulo AI (NestJS)
   `AiService`: gerencia sessões, monta system prompt, orquestra tool calling
   `POST /ai/chat { message, sessionId }` → `{ reply, sessionId, pendingAction? }`
   `GET /ai/conversations`, `GET /ai/insight-daily` (cache Redis 24h)
 
-- [ ] **FASE-6-002** — Context builder
+- [x] **FASE-6-002** — Context builder
   Snapshot financeiro: saldo total, mês atual (receitas/despesas), top 5 categorias, bills pendentes, metas ativas
   Injetado no system prompt a cada sessão. Cache 5min por userId.
 
-- [ ] **FASE-6-003** — Tool definitions e executores
+- [x] **FASE-6-003** — Tool definitions e executores
   Implementar tools: `get_financial_summary`, `get_transactions`, `create_transaction`,
   `create_goal`, `update_bill_status`, `get_budget_status`
   Tools de escrita: retornam `{ pendingAction }` para confirmação no frontend
 
-- [ ] **FASE-6-004** — Orquestração de tool calling
+- [x] **FASE-6-004** — Orquestração de tool calling
   Processar `stop_reason: "tool_use"`, executar tool, retornar resultado à Claude API
   `POST /ai/chat/confirm-action { actionId }`: executa ação confirmada pelo usuário
 
-- [ ] **FASE-6-005** — Interface de chat (Frontend)
+- [x] **FASE-6-005** — Interface de chat (Frontend)
   Conectar página `/chat` à API
   Bubbles com animação de entrada, auto-scroll, loading dots animados
   Modal de confirmação para ações pendentes
   Sugestões de perguntas rápidas como chips clicáveis
 
-- [ ] **FASE-6-006** — Insight diário no dashboard
+- [x] **FASE-6-006** — Insight diário no dashboard
   `InsightWorker`: job diário que gera 1 insight por usuário ativo, salva no Redis
   Conectar card Na_th no dashboard ao `GET /ai/insight-daily`
 

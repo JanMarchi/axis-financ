@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import * as crypto from 'crypto';
+import { AVAILABLE_TOOLS, executeTool } from './tools';
 
 @Injectable()
 export class AiService {
@@ -158,8 +159,17 @@ Return ONLY valid JSON array, no markdown.`;
   }
 
   async chat(userId: string, message: string, sessionId: string) {
-    // Implementação de chat com Na_th
+    // Implementação de chat com Na_th com orquestração de tools
     try {
+      // Buscar conversa anterior para contexto
+      const conversation = await this.prisma.aiConversation.findFirst({
+        where: { sessionId, userId },
+      });
+
+      const conversationMessages = Array.isArray(conversation?.messages)
+        ? conversation.messages
+        : [];
+
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         'anthropic-version': '2023-06-01',
@@ -168,15 +178,24 @@ Return ONLY valid JSON array, no markdown.`;
         headers['x-api-key'] = this.anthropicApiKey;
       }
 
+      // Chamada à Claude com tool use
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers,
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
-          max_tokens: 1024,
+          max_tokens: 4096,
+          tools: AVAILABLE_TOOLS,
           system: `You are Na_th, a financial copilot. You help users manage their finances in Portuguese.
-Be concise, friendly, and always provide actionable advice.`,
-          messages: [{ role: 'user', content: message }],
+Be concise, friendly, and always provide actionable advice.
+Use available tools to gather information and help users make financial decisions.`,
+          messages: [
+            ...conversationMessages.map((msg: any) => ({
+              role: msg.role,
+              content: msg.content,
+            })),
+            { role: 'user', content: message },
+          ],
         }),
       });
 
@@ -185,17 +204,71 @@ Be concise, friendly, and always provide actionable advice.`,
       }
 
       const data = (await response.json()) as any;
-      const reply = data.content[0].text;
+      let finalReply = '';
+      let toolResults: any[] = [];
+
+      // Processar resposta com possível tool use
+      for (const block of data.content) {
+        if (block.type === 'text') {
+          finalReply = block.text;
+        } else if (block.type === 'tool_use') {
+          // Executar tool
+          try {
+            const result = await executeTool(
+              block.name,
+              block.input,
+              userId,
+              this.prisma,
+            );
+            toolResults.push({
+              type: 'tool_result',
+              tool_use_id: block.id,
+              content: JSON.stringify(result),
+            });
+          } catch (error) {
+            toolResults.push({
+              type: 'tool_result',
+              tool_use_id: block.id,
+              content: `Error: ${(error as Error).message}`,
+              is_error: true,
+            });
+          }
+        }
+      }
+
+      // Se houve tool use, fazer segunda chamada com os resultados
+      if (toolResults.length > 0) {
+        const followUpResponse = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 1024,
+            system: `You are Na_th, a financial copilot. You help users manage their finances in Portuguese.
+Based on the tool results, provide actionable advice to the user.`,
+            messages: [
+              ...conversationMessages.map((msg: any) => ({
+                role: msg.role,
+                content: msg.content,
+              })),
+              { role: 'user', content: message },
+              { role: 'assistant', content: data.content },
+              { role: 'user', content: toolResults },
+            ],
+          }),
+        });
+
+        if (followUpResponse.ok) {
+          const followUpData = (await followUpResponse.json()) as any;
+          finalReply = followUpData.content[0].text;
+        }
+      }
 
       // Salvar conversa
-      const conversation = await this.prisma.aiConversation.findFirst({
-        where: { sessionId, userId },
-      });
-
       if (conversation) {
         const messages = Array.isArray(conversation.messages) ? conversation.messages : [];
         messages.push({ role: 'user', content: message });
-        messages.push({ role: 'assistant', content: reply });
+        messages.push({ role: 'assistant', content: finalReply });
 
         await this.prisma.aiConversation.update({
           where: { id: conversation.id },
@@ -208,13 +281,13 @@ Be concise, friendly, and always provide actionable advice.`,
             sessionId,
             messages: [
               { role: 'user', content: message },
-              { role: 'assistant', content: reply },
+              { role: 'assistant', content: finalReply },
             ],
           },
         });
       }
 
-      return { reply, sessionId };
+      return { reply: finalReply, sessionId };
     } catch (error) {
       this.logger.error(`Chat error: ${(error as Error).message}`);
       throw error;
