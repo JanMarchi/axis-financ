@@ -5,6 +5,32 @@
 ╚══════════════════════════════════════════════════════════════╝
 
 
+⚡ PASSO 0: INSTALAR TUDO (SEM PRÉ-REQUISITOS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Se você NÃO tem PostgreSQL ou Redis instalados:
+
+1. Abra esta pasta no Windows Explorer
+   C:\Users\intel\Documents\jan\axis_financ
+
+2. Procure pelo arquivo:
+   ⚙️ INSTALAR_TUDO.vbs
+   OU
+   📄 INSTALAR_TUDO.bat
+
+3. Clique com botão DIREITO nele
+
+4. Selecione: "Executar como administrador"
+
+5. Aguarde a instalação concluir (~5-10 minutos)
+   - WSL será instalado (se necessário)
+   - PostgreSQL será instalado
+   - Redis será instalado
+   - Tudo será iniciado automaticamente
+
+✨ Pronto! Você pode prosseguir para PASSO 1
+
+
 📝 PASSO 1: CRIAR ATALHO NA ÁREA DE TRABALHO
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

@@ -1,5 +1,29 @@
 # 🚀 COMO INICIAR - Axis Finance (Um Clique!)
 
+## 0️⃣ **SE NÃO TEM PostgreSQL/Redis: Instalar Tudo**
+
+Abra a pasta do projeto e procure por:
+```
+⚙️ INSTALAR_TUDO.vbs
+```
+
+Ou:
+```
+📄 INSTALAR_TUDO.bat
+```
+
+**Clique com botão DIREITO → "Executar como administrador"**
+
+Aguarde a instalação (~5-10 minutos):
+- ✅ WSL será instalado
+- ✅ PostgreSQL será instalado
+- ✅ Redis será instalado
+- ✅ Todos os serviços serão iniciados
+
+**Quando terminar, vá para o PASSO 1 abaixo.**
+
+---
+
 ## ⚡ Modo Rápido (Recomendado)
 
 ### 1️⃣ **PRIMEIRA VEZ: Criar o Atalho**
