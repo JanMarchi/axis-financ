@@ -1,50 +1,21 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
 import { MoneyDisplay } from '@/components/ui/money-display';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { SkeletonCard } from '@/components/ui/skeleton-card';
+import { useTransactions } from '@/hooks/useTransactions';
+import { CreateTransactionForm } from '@/components/forms/CreateTransactionForm';
 
 export default function TransactionsPage() {
-  const transactions = [
-    {
-      id: '1',
-      date: '2024-03-20',
-      description: 'Mercado X',
-      category: 'Alimentação',
-      account: 'Conta Corrente',
-      value: -145.30,
-      status: 'paid',
-    },
-    {
-      id: '2',
-      date: '2024-03-20',
-      description: 'Salário Mensal',
-      category: 'Salário',
-      account: 'Conta Corrente',
-      value: 5000,
-      status: 'paid',
-    },
-    {
-      id: '3',
-      date: '2024-03-19',
-      description: 'Uber',
-      category: 'Transporte',
-      account: 'Cartão Crédito',
-      value: -42.50,
-      status: 'paid',
-    },
-    {
-      id: '4',
-      date: '2024-03-19',
-      description: 'Restaurante Premium',
-      category: 'Restaurante',
-      account: 'Cartão Crédito',
-      value: -98.00,
-      status: 'pending',
-    },
-  ];
+  const [filters, setFilters] = useState({});
+  const { transactions, isLoading, refetch } = useTransactions(filters);
+
+  const handleFilterChange = (newFilters: Record<string, any>) => {
+    setFilters(newFilters);
+  };
 
   return (
     <div>
@@ -63,54 +34,68 @@ export default function TransactionsPage() {
           type="date"
           className="px-4 py-2 rounded-input bg-bg-subtle border border-border-default text-text-primary text-sm"
           placeholder="Data inicial"
+          onChange={(e) => handleFilterChange({ ...filters, startDate: e.target.value })}
         />
         <input
           type="date"
           className="px-4 py-2 rounded-input bg-bg-subtle border border-border-default text-text-primary text-sm"
           placeholder="Data final"
+          onChange={(e) => handleFilterChange({ ...filters, endDate: e.target.value })}
         />
-        <select className="px-4 py-2 rounded-input bg-bg-subtle border border-border-default text-text-primary text-sm">
-          <option>Todas as contas</option>
-          <option>Conta Corrente</option>
-          <option>Cartão Crédito</option>
+        <select
+          className="px-4 py-2 rounded-input bg-bg-subtle border border-border-default text-text-primary text-sm"
+          onChange={(e) => handleFilterChange({ ...filters, accountId: e.target.value || undefined })}
+        >
+          <option value="">Todas as contas</option>
         </select>
-        <select className="px-4 py-2 rounded-input bg-bg-subtle border border-border-default text-text-primary text-sm">
-          <option>Todas as categorias</option>
-          <option>Alimentação</option>
-          <option>Transporte</option>
+        <select
+          className="px-4 py-2 rounded-input bg-bg-subtle border border-border-default text-text-primary text-sm"
+          onChange={(e) => handleFilterChange({ ...filters, categoryId: e.target.value || undefined })}
+        >
+          <option value="">Todas as categorias</option>
         </select>
+      </div>
+
+      <div className="mb-6 flex justify-end">
+        <CreateTransactionForm onSuccess={refetch} />
       </div>
 
       {/* Table */}
       <div className="bg-bg-elevated border border-border-subtle rounded-card overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border-subtle bg-bg-muted">
-              <th className="px-6 py-3 text-left text-xs font-semibold text-text-secondary">Data</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-text-secondary">Descrição</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-text-secondary">Categoria</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-text-secondary">Conta</th>
-              <th className="px-6 py-3 text-right text-xs font-semibold text-text-secondary">Valor</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-text-secondary">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transactions.map((tx) => (
-              <tr key={tx.id} className="border-b border-border-subtle hover:bg-bg-overlay transition-colors">
-                <td className="px-6 py-4 text-sm text-text-secondary">{tx.date}</td>
-                <td className="px-6 py-4 text-sm font-medium text-text-primary">{tx.description}</td>
-                <td className="px-6 py-4 text-sm text-text-secondary">{tx.category}</td>
-                <td className="px-6 py-4 text-sm text-text-secondary">{tx.account}</td>
-                <td className="px-6 py-4 text-right text-sm font-mono">
-                  <MoneyDisplay value={tx.value} colored size="sm" />
-                </td>
-                <td className="px-6 py-4 text-sm">
-                  <StatusBadge status={tx.status} size="sm" />
-                </td>
+        {isLoading ? (
+          <div className="p-6">
+            <SkeletonCard />
+          </div>
+        ) : transactions.length > 0 ? (
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border-subtle bg-bg-muted">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-text-secondary">Data</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-text-secondary">Descrição</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-text-secondary">Tipo</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-text-secondary">Valor</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-text-secondary">Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {transactions.map((tx) => (
+                <tr key={tx.id} className="border-b border-border-subtle hover:bg-bg-overlay transition-colors">
+                  <td className="px-6 py-4 text-sm text-text-secondary">{new Date(tx.date).toLocaleDateString('pt-BR')}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-text-primary">{tx.description}</td>
+                  <td className="px-6 py-4 text-sm text-text-secondary">{tx.type}</td>
+                  <td className="px-6 py-4 text-right text-sm font-mono">
+                    <MoneyDisplay value={tx.amount} colored size="sm" />
+                  </td>
+                  <td className="px-6 py-4 text-sm">
+                    <StatusBadge status={tx.status as any} size="sm" />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="p-8 text-center text-text-secondary">Nenhuma transação encontrada</div>
+        )}
       </div>
 
       {/* FAB Button */}

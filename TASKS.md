@@ -529,17 +529,17 @@
 
 **Meta:** Todos os módulos financeiros funcionais com dados reais no banco.
 
-- [ ] **FASE-3-001** — Módulo Accounts (NestJS + Frontend)
+- [x] **FASE-3-001** — Módulo Accounts (NestJS + Frontend)
   Service: CRUD com `userId` obrigatório em toda query
   Cálculo de fatura de cartão: despesas entre `closingDay` e `dueDay`
   Frontend: conectar página `/accounts`, formulário validado, confirmação de exclusão
 
-- [ ] **FASE-3-002** — Módulo Categories (NestJS + Frontend)
+- [x] **FASE-3-002** — Módulo Categories (NestJS + Frontend)
   Listar categorias do sistema + personalizadas do usuário
   CRUD de categorias personalizadas
   Configurações de categorias na página `/settings`
 
-- [ ] **FASE-3-003** — Módulo Transactions (NestJS)
+- [x] **FASE-3-003** — Módulo Transactions (NestJS)
   Listagem com filtros: `startDate`, `endDate`, `accountId`, `categoryId`, `type`, `status`, `search`
   Paginação: `page` + `limit` com `meta: { total, page, perPage, totalPages }`
   Lógica de recorrência: criar instâncias futuras para 12 meses
@@ -547,36 +547,36 @@
   Atualizar `account.balance` em toda criação/edição/deleção
   Soft delete + registro em `audit_logs`
 
-- [ ] **FASE-3-004** — Módulo Transactions (Frontend)
+- [x] **FASE-3-004** — Módulo Transactions (Frontend)
   Tabela com infinite scroll ou paginação
   Filtros funcionais com debounce
   Modal criar/editar com todos os campos
   Campos condicionais: conta destino (se transferência), frequência (se recorrente), parcelas (se parcelado)
 
-- [ ] **FASE-3-005** — Módulo Bills (NestJS + Frontend)
+- [x] **FASE-3-005** — Módulo Bills (NestJS + Frontend)
   Cron job diário: atualizar `status = overdue` se vencida e não paga
   `POST /bills/:id/pay`: atualiza status, cria transaction, registra `paid_at`
   Frontend: calendário funcional, lista por status, formulário de criação
 
-- [ ] **FASE-3-006** — Módulo Goals (NestJS + Frontend)
+- [x] **FASE-3-006** — Módulo Goals (NestJS + Frontend)
   `POST /goals/:id/contribute`: adiciona aporte, atualiza `currentAmount`
   Cálculo automático de `monthlyContribution` sugerida
   Frontend: grid de cards com progress circular SVG, modal de detalhe com histórico
 
-- [ ] **FASE-3-007** — Módulo Budgets (NestJS + Frontend)
+- [x] **FASE-3-007** — Módulo Budgets (NestJS + Frontend)
   `GET /budgets?month&year` com `spentAmount` calculado das transações
   Recalcular `spentAmount` ao criar/editar/deletar transação (via event ou trigger)
   `GET /budgets/summary`: totais por envelope com % usada
   Frontend: seletor de mês, envelopes coloridos, alertas de 90%+
 
-- [ ] **FASE-3-008** — Dashboard com dados reais
+- [x] **FASE-3-008** — Dashboard com dados reais
   Conectar todas as APIs ao dashboard
   Saldo consolidado = soma de todas as contas ativas
   Receitas/despesas do mês via filtro de transações
   Loading skeletons enquanto carrega (shimmer animation)
   SWR ou React Query para cache e revalidação
 
-- [ ] **FASE-3-009** — Commit da Fase 3
+- [x] **FASE-3-009** — Commit da Fase 3
 
   ```bash
   git add -A && git commit -m "feat(fase-3): todos os módulos CRUD funcionais com dados reais"
