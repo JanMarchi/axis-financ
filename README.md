@@ -1,4 +1,4 @@
-# Me Poupe+ — Plataforma de Gestão Financeira com IA
+# Axis Finance — Plataforma de Gestão Financeira com IA
 
 Plataforma SaaS de gestão financeira pessoal com IA copilota (Na_th).
 
@@ -27,6 +27,7 @@ mepoupe-plus/
 ## Quickstart
 
 ### Pré-requisitos
+
 - Node.js 20+
 - Docker & Docker Compose
 - npm ou yarn
@@ -56,6 +57,7 @@ API rodará em `http://localhost:3001`
 Frontend rodará em `http://localhost:3000`
 
 ### Health Check
+
 ```bash
 curl http://localhost:3001/health
 # { "status": "ok" }

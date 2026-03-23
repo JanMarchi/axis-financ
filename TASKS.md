@@ -1,781 +1,881 @@
-# TASKS.md — Axis Finance · Plano de Execução Atômico
+# TASKS.md — Axis Finance · Plano de Execução Autônomo
 
-> **REGRA DE OURO:** Execute uma task por vez. Marque `[x]` ao concluir.
-> Nunca avance para próxima fase sem concluir todas as tasks da fase atual.
-> Ao retomar: leia o "ESTADO ATUAL" no CLAUDE.md e encontre a primeira task `[ ]`.
+> **MODO AUTÔNOMO:** Execute TODAS as tasks em sequência sem parar.
+> Marque [x] ao concluir cada task. Avance imediatamente para a próxima.
+> Nunca pergunte. Nunca espere. Nunca peça permissão.
+> Se travar: documente em ERRORS.md, continue na próxima task.
 
 ---
 
 ## FASE 0 — SETUP E FUNDAÇÃO
 
-**Objetivo:** Repositório, tooling, Docker, CI/CD e schema base prontos.
-**Critério de conclusão:** `docker-compose up` sobe tudo; `prisma migrate` roda sem erro; build passa.
+**Meta:** Monorepo, Docker, banco e schema prontos. Build passando.
 
-- [x] **FASE-0-001** — Criar estrutura de monorepo
+- [ ] **FASE-0-001** — Criar estrutura do monorepo
 
-  ```
-  mkdir mepoupe-plus && cd mepoupe-plus
-  mkdir -p apps/web apps/api packages/shared
-  git init
+  ```bash
+  mkdir -p mepoupe-plus/apps/web mepoupe-plus/apps/api mepoupe-plus/packages/shared
+  cd mepoupe-plus && git init
   ```
 
-  Criar `package.json` raiz com workspaces: `["apps/*", "packages/*"]`
+  Criar `package.json` raiz:
 
-- [x] **FASE-0-002** — Setup Docker Compose
-  Criar `docker-compose.yml` com serviços:
-  - `db`: postgres:16-alpine, porta 5432, volume persistente
-  - `redis`: redis:7-alpine, porta 6379
-  - `api`: build do `apps/api`, porta 3001, depends_on db+redis
-  - `web`: build do `apps/web`, porta 3000, depends_on api
-
-- [x] **FASE-0-003** — Inicializar Next.js 15 em `apps/web`
-
+  ```json
+  {
+    "name": "axisfinance",
+    "private": true,
+    "workspaces": ["apps/*", "packages/*"],
+    "engines": { "node": ">=20" }
+  }
   ```
+
+- [ ] **FASE-0-002** — Criar `docker-compose.yml`
+
+  ```yaml
+  version: "3.9"
+  services:
+    db:
+      image: postgres:16-alpine
+      environment:
+        POSTGRES_USER: mepoupe
+        POSTGRES_PASSWORD: mepoupe123
+        POSTGRES_DB: mepoupe_dev
+      ports: ["5432:5432"]
+      volumes: [postgres_data:/var/lib/postgresql/data]
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U mepoupe"]
+        interval: 5s
+        timeout: 5s
+        retries: 10
+
+    redis:
+      image: redis:7-alpine
+      ports: ["6379:6379"]
+      command: redis-server --appendonly yes
+      volumes: [redis_data:/data]
+      healthcheck:
+        test: ["CMD", "redis-cli", "ping"]
+        interval: 5s
+
+  volumes:
+    postgres_data:
+    redis_data:
+  ```
+
+  Rodar: `docker-compose up -d`
+
+- [ ] **FASE-0-003** — Inicializar Next.js 15
+
+  ```bash
   cd apps/web
-  npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
+  npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --yes
   ```
 
-  Instalar: `shadcn/ui` (init), `recharts`, `react-hook-form`, `zod`, `@hookform/resolvers`
+  Instalar dependências:
 
-- [x] **FASE-0-004** — Inicializar NestJS em `apps/api`
-
+  ```bash
+  npm install framer-motion recharts react-hook-form zod @hookform/resolvers
+  npm install @supabase/ssr @supabase/supabase-js
+  npm install react-countup date-fns
+  npx shadcn@latest init --yes --base-color zinc --css-variables
+  npx shadcn@latest add --yes button card dialog dropdown-menu form input label select separator sheet skeleton tabs toast badge progress avatar
   ```
+
+- [ ] **FASE-0-004** — Instalar fontes premium no Next.js
+  Editar `apps/web/src/app/layout.tsx`:
+
+  ```typescript
+  import { Geist, Geist_Mono, Bricolage_Grotesque } from 'next/font/google'
+
+  const geist = Geist({
+    subsets: ['latin'],
+    variable: '--font-geist',
+    weight: ['300','400','500','600'],
+  })
+  const geistMono = Geist_Mono({
+    subsets: ['latin'],
+    variable: '--font-geist-mono',
+    weight: ['400','500','600'],
+  })
+  const bricolage = Bricolage_Grotesque({
+    subsets: ['latin'],
+    variable: '--font-bricolage',
+    weight: ['400','500','600','700','800'],
+  })
+  // Aplicar: className={`${geist.variable} ${geistMono.variable} ${bricolage.variable}`}
+  ```
+
+- [ ] **FASE-0-005** — Configurar design system no Tailwind
+  Substituir `apps/web/tailwind.config.ts` com:
+
+  ```typescript
+  import type { Config } from 'tailwindcss'
+
+  const config: Config = {
+    darkMode: ['class'],
+    content: ['./src/**/*.{ts,tsx}'],
+    theme: {
+      extend: {
+        fontFamily: {
+          display: ['var(--font-bricolage)', 'sans-serif'],
+          sans: ['var(--font-geist)', 'sans-serif'],
+          mono: ['var(--font-geist-mono)', 'monospace'],
+        },
+        colors: {
+          brand: {
+            400: '#33DC83', 500: '#00D46A', 600: '#00A854',
+            glow: 'rgba(0, 212, 106, 0.15)',
+          },
+          accent: { 400: '#F7BC50', 500: '#F5A623', 600: '#D48B1A' },
+          envelope: {
+            essential: '#3B82F6',
+            'non-essential': '#F97316',
+            growth: '#10B981',
+            investment: '#8B5CF6',
+          },
+          bg: {
+            base: '#0A0A0B',
+            elevated: '#111113',
+            overlay: '#18181B',
+            subtle: '#1C1C1F',
+            muted: '#27272A',
+          },
+        },
+        borderRadius: { card: '16px', btn: '10px', input: '10px' },
+        backgroundImage: {
+          'card-brand': 'linear-gradient(135deg, #0F1F15 0%, #111113 60%)',
+        },
+        fontSize: {
+          'display-hero': ['4.5rem', { lineHeight: '1.05', letterSpacing: '-0.04em', fontWeight: '800' }],
+          'display-lg': ['3rem', { lineHeight: '1.15', letterSpacing: '-0.03em', fontWeight: '700' }],
+          'display-md': ['2.25rem', { lineHeight: '1.2', letterSpacing: '-0.02em', fontWeight: '600' }],
+        },
+        animation: {
+          'pulse-brand': 'pulse-brand 2s cubic-bezier(0.4,0,0.6,1) infinite',
+          shimmer: 'shimmer 2s linear infinite',
+        },
+        keyframes: {
+          'pulse-brand': {
+            '0%, 100%': { boxShadow: '0 0 0 0 rgba(0,212,106,0.4)' },
+            '50%': { boxShadow: '0 0 0 8px rgba(0,212,106,0)' },
+          },
+          shimmer: {
+            '0%': { backgroundPosition: '-200% 0' },
+            '100%': { backgroundPosition: '200% 0' },
+          },
+        },
+      },
+    },
+  }
+  export default config
+  ```
+
+- [ ] **FASE-0-006** — Configurar CSS variables globais
+  Substituir `apps/web/src/app/globals.css`:
+
+  ```css
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+
+  :root {
+    --bg-base: #0A0A0B;
+    --bg-elevated: #111113;
+    --bg-overlay: #18181B;
+    --bg-subtle: #1C1C1F;
+    --bg-muted: #27272A;
+    --brand-500: #00D46A;
+    --brand-400: #33DC83;
+    --brand-600: #00A854;
+    --brand-glow: rgba(0, 212, 106, 0.15);
+    --accent-500: #F5A623;
+    --env-essential: #3B82F6;
+    --env-non-ess: #F97316;
+    --env-growth: #10B981;
+    --env-invest: #8B5CF6;
+    --success: #22C55E;
+    --warning: #EAB308;
+    --danger: #EF4444;
+    --text-primary: #FAFAFA;
+    --text-secondary: #A1A1AA;
+    --text-tertiary: #71717A;
+    --text-disabled: #3F3F46;
+    --border-subtle: rgba(255,255,255,0.06);
+    --border-default: rgba(255,255,255,0.10);
+    --border-strong: rgba(255,255,255,0.18);
+    --border-brand: rgba(0,212,106,0.30);
+  }
+
+  * { box-sizing: border-box; }
+  html { background: var(--bg-base); color: var(--text-primary); }
+  body { font-family: var(--font-geist), sans-serif; -webkit-font-smoothing: antialiased; }
+
+  /* Shimmer skeleton */
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg-subtle) 25%, var(--bg-overlay) 50%, var(--bg-subtle) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+    border-radius: 8px;
+  }
+
+  /* Money display */
+  .money {
+    font-family: var(--font-geist-mono), monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  /* Scrollbar custom */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg-muted); border-radius: 2px; }
+  ```
+
+- [ ] **FASE-0-007** — Inicializar NestJS
+
+  ```bash
   cd apps/api
-  npx @nestjs/cli new . --skip-git --package-manager npm
+  npx @nestjs/cli new . --skip-git --package-manager npm --language typescript --yes
+  npm install @nestjs/config @nestjs/throttler @nestjs/bull @nestjs/schedule
+  npm install bullmq ioredis
+  npm install prisma @prisma/client
+  npm install class-validator class-transformer
+  npm install bcrypt @types/bcrypt
+  npm install @nestjs/swagger swagger-ui-express
+  npm install axios
+  npx prisma init
   ```
 
-  Instalar: `@nestjs/config`, `@nestjs/throttler`, `@nestjs/bull`, `bullmq`,
-  `prisma`, `@prisma/client`, `class-validator`, `class-transformer`,
-  `ioredis`, `bcrypt`, `@types/bcrypt`
+- [ ] **FASE-0-008** — Configurar schema Prisma
+  Copiar schema completo do CLAUDE.md seção 5 para `apps/api/prisma/schema.prisma`
 
-- [x] **FASE-0-005** — Configurar Prisma
-
-  ```
-  cd apps/api && npx prisma init
+  ```bash
+  npx prisma migrate dev --name init --skip-seed
+  npx prisma generate
   ```
 
-  Copiar schema completo do CLAUDE.md seção 4 para `prisma/schema.prisma`
-  Rodar: `npx prisma migrate dev --name init`
-  Rodar: `npx prisma generate`
+- [ ] **FASE-0-009** — Criar `packages/shared`
+  Criar `packages/shared/package.json`:
 
-- [x] **FASE-0-006** — Criar `packages/shared`
-  Criar `packages/shared/src/index.ts` com tipos compartilhados:
-  - `Money`: tipo helper para Decimal display
-  - `ApiResponse<T>`: wrapper padrão de resposta
-  - `PaginatedResponse<T>`: wrapper com meta
-  - Constantes: `ENVELOPE_PERCENTAGES`, `PLAN_LIMITS`, `CATEGORY_ICONS`
-
-- [x] **FASE-0-007** — Criar arquivos `.env.example`
-  Copiar template de variáveis do CLAUDE.md seção 3 para:
-  - `apps/api/.env.example` → `apps/api/.env` (com valores dev)
-  - `apps/web/.env.example` → `apps/web/.env.local` (com valores dev)
-
-- [x] **FASE-0-008** — Configurar GitHub Actions CI
-  Criar `.github/workflows/ci.yml`:
-  - Trigger: push em `main` e PRs
-  - Jobs: `lint` (eslint), `type-check` (tsc), `test` (jest), `build`
-  - Usar `docker-compose` para subir serviços de teste
-
-- [x] **FASE-0-009** — Seed inicial do banco
-  Criar `apps/api/prisma/seed.ts` com:
-  - Categorias de sistema (is_system: true) — 20 categorias padrão BR
-  - Usuário de teste: `test@mepoupe.dev` / `Test@123`
-  - Rodar: `npx prisma db seed`
-
-- [ ] **FASE-0-010** — Validar setup
-
-  ```
-  docker-compose up -d
-  cd apps/api && npm run start:dev    # deve iniciar na porta 3001
-  cd apps/web && npm run dev          # deve iniciar na porta 3000
+  ```json
+  { "name": "@axisfinance/shared", "version": "1.0.0", "main": "src/index.ts" }
   ```
 
-  Confirmar: `GET http://localhost:3001/health` retorna `{ status: "ok" }`
-  **COMMIT:** `git commit -m "chore(fase-0): setup monorepo, docker, prisma, ci"`
+  Criar `packages/shared/src/index.ts` com:
+  - Interface `ApiResponse<T>`, `PaginatedResponse<T>`, `PaginationMeta`
+  - Constante `ENVELOPE_PERCENTAGES`: `{ essential: 55, nonEssential: 10, growth: 10, investment: 25 }`
+  - Constante `PLAN_LIMITS`: `{ free: { transactionsPerMonth: 50, accounts: 1, openFinance: false, aiMessages: 10 } }`
+  - Helper `formatMoney(value: number): string` → `'R$ 1.234,56'`
+  - Helper `formatPercent(value: number): string` → `'23,5%'`
+
+- [ ] **FASE-0-010** — Criar arquivos `.env` de desenvolvimento
+  Criar `apps/api/.env` e `apps/web/.env.local` com os valores do CLAUDE.md seção 4
+  (usar "PREENCHER" como placeholder para chaves externas)
+
+- [ ] **FASE-0-011** — Seed inicial do banco
+  Criar `apps/api/prisma/seed.ts` com 20 categorias de sistema:
+
+  ```
+  Essencial: Moradia, Alimentação, Transporte, Saúde, Educação, Serviços Básicos, Seguros
+  Não Essencial: Lazer, Restaurantes, Compras, Assinaturas, Beleza, Pets
+  Crescimento: Cursos, Livros, Investimento em Carreira
+  Investimento: Renda Fixa, Ações, Fundos, Reserva de Emergência
+  Receita: Salário, Freelance, Renda Extra, Outros
+  ```
+
+  Rodar: `npx prisma db seed`
+
+- [ ] **FASE-0-012** — Endpoint de health check
+  Criar `apps/api/src/health/health.controller.ts`:
+
+  ```typescript
+  @Get('/health')
+  health() { return { status: 'ok', timestamp: new Date().toISOString() } }
+  ```
+
+  Verificar: `curl http://localhost:3001/health` retorna `{ status: "ok" }`
+
+- [ ] **FASE-0-013** — Commit da Fase 0
+
+  ```bash
+  git add -A && git commit -m "chore(fase-0): monorepo, docker, prisma schema, design system base"
+  ```
+
+  Atualizar seção "ESTADO ATUAL" no CLAUDE.md: marcar Fase 0 como `[x] CONCLUÍDO`
 
 ---
 
-## FASE 1 — UI E DESIGN SYSTEM
+## FASE 1 — LAYOUT E DESIGN SYSTEM
 
-**Objetivo:** Layout, design system e todas as páginas em skeleton prontos.
-**Critério de conclusão:** Todas as rotas navegáveis com dados mockados; design consistente.
+**Meta:** Todas as páginas navegáveis com design premium. Sem dados reais ainda.
 
-- [ ] **FASE-1-001** — Configurar Tailwind com tokens do design system
-  Editar `apps/web/tailwind.config.ts`:
-  Adicionar `colors.brand`, `colors.envelope` do CLAUDE.md seção 6
-  Adicionar fonte Inter via `next/font`
+- [ ] **FASE-1-001** — Componentes de design base
+  Criar `apps/web/src/components/ui/money-display.tsx`:
 
-- [ ] **FASE-1-002** — Configurar shadcn/ui com tema customizado
-  Rodar `npx shadcn@latest add` para os componentes:
-  `button card dialog dropdown-menu form input label select separator sheet skeleton tabs toast badge progress`
-  Customizar `globals.css` com CSS variables do tema Me Poupe+
+  ```tsx
+  // Props: value (number|Decimal), size ('sm'|'md'|'lg'|'hero'), colored (boolean)
+  // Usar Geist Mono, tabular-nums, verde se positivo, text-primary se negativo
+  // Size hero: text-display-hero, brand-500
+  ```
 
-- [ ] **FASE-1-003** — Criar layout principal autenticado
-  `apps/web/src/app/(app)/layout.tsx`:
-  - Sidebar esquerda: Logo + nav links (Dashboard, Transações, Contas, Orçamento, Metas, Contas a Pagar, Chat, Relatórios, Config)
-  - Header: título da página, notificações, avatar do usuário
-  - Main content area com scroll
-  - Responsivo: sidebar vira bottom tab bar em mobile
+  Criar `apps/web/src/components/ui/skeleton-card.tsx` — shimmer animation
+  Criar `apps/web/src/components/ui/empty-state.tsx` — ícone + título + descrição + CTA
+  Criar `apps/web/src/components/ui/status-badge.tsx` — badge colorido por status
+  Criar `apps/web/src/components/ui/page-header.tsx` — título Bricolage + breadcrumb + ação
 
-- [ ] **FASE-1-004** — Criar componentes base reutilizáveis
-  Criar em `apps/web/src/components/`:
-  - `MoneyDisplay`: formata Decimal para `R$ 1.234,56`
-  - `LoadingSkeleton`: skeleton genérico configurável
-  - `EmptyState`: componente com ilustração + mensagem + CTA opcional
-  - `ConfirmDialog`: modal de confirmação com título + descrição + botões
-  - `StatusBadge`: badge colorido por status (pending/paid/overdue etc)
-  - `PageHeader`: título + breadcrumb + ação primária
+- [ ] **FASE-1-002** — Layout da sidebar
+  Criar `apps/web/src/components/layout/sidebar.tsx`:
+  - Logo "Axis Finance" — Bricolage Grotesque 600, "+" em brand-500
+  - Nav links com ícones Lucide: Dashboard, Transações, Contas, Orçamento, Metas, Contas a Pagar, Chat Na_th, Relatórios, Configurações
+  - Item ativo: border-left 2px brand-500, bg-subtle
+  - Footer: avatar + nome + badge plano + CTA upgrade (pulse animation) se free
+  - Responsivo: oculta labels em < 768px, mostra só ícones
 
-- [ ] **FASE-1-005** — Página Dashboard (skeleton)
-  `apps/web/src/app/(app)/dashboard/page.tsx`
-  Layout com placeholders:
-  - Card saldo total consolidado
-  - Donut chart receitas vs despesas
-  - Cards 4 envelopes com barras de progresso
-  - Lista próximas 5 contas
-  - Card metas ativas
-  - Feed últimas 10 transações
-  - Card copilota Na_th com CTA
+- [ ] **FASE-1-003** — Layout principal autenticado
+  Criar `apps/web/src/app/(app)/layout.tsx`:
+  - Sidebar fixa à esquerda (240px)
+  - Header fixo no topo: saudação + data + notificações + avatar
+  - Main content: padding responsivo, scroll independente
+  - Usar `framer-motion` `AnimatePresence` para transição entre páginas
 
-- [ ] **FASE-1-006** — Página Transações (skeleton)
-  `apps/web/src/app/(app)/transactions/page.tsx`
-  - Filtros: período, conta, categoria, tipo, status
-  - Tabela paginada com colunas: data, descrição, categoria, conta, valor, status
-  - FAB "Nova Transação"
-  - Modal de criação/edição (todos os campos do CLAUDE.md seção 5.3)
+- [ ] **FASE-1-004** — Dashboard page
+  Criar `apps/web/src/app/(app)/dashboard/page.tsx`:
 
-- [ ] **FASE-1-007** — Página Contas (skeleton)
-  `apps/web/src/app/(app)/accounts/page.tsx`
-  - Lista agrupada por tipo
-  - Card por conta com saldo
-  - Botão "Conectar banco" (placeholder para Pluggy)
-  - Botão "Adicionar manual"
+  **Card Saldo Total** (2 colunas de largura):
+  - Fundo: `bg-card-brand`, borda brand, glow verde
+  - Número: Bricolage 800, 4.5rem, brand-500, animação countup
+  - "Patrimônio total" em text-tertiary uppercase tracking-widest 11px
+  - Variação do mês: badge "+X,X%" verde ou "-X,X%" vermelho
 
-- [ ] **FASE-1-008** — Página Orçamento/Envelopes (skeleton)
-  `apps/web/src/app/(app)/budget/page.tsx`
-  - Seletor mês/ano
-  - 4 seções de envelopes coloridos
-  - Barra de progresso por categoria
-  - % usada vs orçada
+  **Card Situação do Mês** (1 coluna):
+  - Donut chart Recharts: receitas vs despesas
+  - Centro do donut: valor de saldo do mês
+  - Cores: success (receitas), danger (despesas)
 
-- [ ] **FASE-1-009** — Página Metas (skeleton)
-  `apps/web/src/app/(app)/goals/page.tsx`
+  **Cards Envelopes** (4 cards em row):
+  - Por envelope: ícone colorido + nome + valor gasto / valor orçado
+  - Progress bar estilizada: cor do envelope, arredondada, fundo bg-muted
+  - % no canto direito
+
+  **Card Próximas Contas** (1 coluna):
+  - Lista de 5 bills com: nome, valor (Geist Mono), dias até vencimento
+  - Urgente (< 2 dias): texto danger + background danger/10
+
+  **Card Metas** (1 coluna):
+  - 3 metas com progress bar e % concluído
+
+  **Feed Transações** (full width):
+  - 10 transações: ícone da categoria, descrição, data, valor ± colorido, badge status
+
+  **Card Na_th** (1 coluna):
+  - Avatar da Na_th (círculo brand-500 com emoji 🤖 ou SVG)
+  - Insight do dia (texto estático mockado por ora)
+  - Botão "Conversar com Na_th" → /chat
+
+  Todos os cards com: `motion.div` fadeUp, stagger entre cards
+
+- [ ] **FASE-1-005** — Transactions page
+  Criar `apps/web/src/app/(app)/transactions/page.tsx`:
+  - Header com filtros: DateRangePicker, Select de conta, Select de categoria, Select de tipo
+  - Tabela dark: header bg-muted, rows bg-elevated hover bg-overlay
+  - Colunas: Data · Descrição · Categoria (ícone+nome) · Conta · Valor (Geist Mono ±cor) · Status
+  - FAB "+" fixo canto inferior direito: brand-500, sombra glow verde
+  - Modal `TransactionModal` com todos os campos
+
+- [ ] **FASE-1-006** — Accounts page
+  Criar `apps/web/src/app/(app)/accounts/page.tsx`:
+  - Agrupamento por tipo com header da seção
+  - Cada conta: card com ícone da instituição (cor configurável), nome, saldo grande (Geist Mono)
+  - Badge "Open Finance" vs "Manual"
+  - Botões: "+ Conectar banco" (brand-500), "+ Adicionar manual" (ghost)
+
+- [ ] **FASE-1-007** — Budget page
+  Criar `apps/web/src/app/(app)/budget/page.tsx`:
+  - Seletor mês/ano com chevrons de navegação
+  - 4 seções de envelopes com cor temática
+  - Por envelope: total orçado vs gasto + barra de progresso grossa (8px)
+  - Subcategorias expandíveis
+  - Indicador de saúde: ✅ dentro do orçamento, ⚠️ acima de 80%, 🔴 acima de 100%
+
+- [ ] **FASE-1-008** — Goals page
+  Criar `apps/web/src/app/(app)/goals/page.tsx`:
   - Grid de cards de metas
-  - Progress bar circular por meta
-  - Modal criação de meta
+  - Cada meta: ícone emoji grande, nome, valor atual/alvo (Geist Mono), progress bar circular (SVG), deadline, % concluído
+  - Botão "Nova Meta" no header
 
-- [ ] **FASE-1-010** — Página Contas a Pagar / Bills (skeleton)
-  `apps/web/src/app/(app)/bills/page.tsx`
-  - Calendário mensal
-  - Lista por status (pendente/vencida/paga)
-  - Modal de adição
+- [ ] **FASE-1-009** — Bills page
+  Criar `apps/web/src/app/(app)/bills/page.tsx`:
+  - Layout duplo: calendário à esquerda + lista à direita
+  - Calendário: dias com contas têm indicador de cor (verde=pago, vermelho=vencido, azul=pendente)
+  - Lista filtrada por status com tabs (Tudo / Pendente / Vencido / Pago)
+  - Cada bill: nome, valor (Geist Mono), data vencimento, status badge
 
-- [ ] **FASE-1-011** — Página Chat Na_th (skeleton)
-  `apps/web/src/app/(app)/chat/page.tsx`
-  - Interface de messaging: histórico + input
-  - Bubbles de mensagem (user vs Na_th)
-  - Estado vazio: welcome message da Na_th
-  - Loading state: "Na_th está pensando..."
+- [ ] **FASE-1-010** — Chat page
+  Criar `apps/web/src/app/(app)/chat/page.tsx`:
+  - Layout de messaging full-height
+  - Header: avatar Na_th + "Na_th · Copilota Financeira" + badge online
+  - Histórico: scroll com `ref` auto-scroll para fim
+  - Bubble usuário: direita, bg brand-500, texto preto, Bricolage 14px
+  - Bubble Na_th: esquerda, bg bg-elevated, borda border-subtle, avatar pequeno
+  - Input fixo no bottom: bg-subtle, border, placeholder "Pergunte à Na_th..."
+  - Welcome state: cards de sugestão "Como estou esse mês?", "Análise dos gastos", "Criar meta"
 
-- [ ] **FASE-1-012** — Página Relatórios (skeleton)
-  `apps/web/src/app/(app)/reports/page.tsx`
-  - Tabs: Fluxo de Caixa, Por Categoria, Patrimônio, Envelopes
-  - Charts placeholder com Recharts
+- [ ] **FASE-1-011** — Reports page
+  Criar `apps/web/src/app/(app)/reports/page.tsx`:
+  - Tabs estilizadas: Fluxo de Caixa · Por Categoria · Patrimônio · Envelopes
+  - Recharts dark theme: background transparente, grid lines bg-muted, tooltips bg-overlay
+  - Bar chart (Fluxo): barras arredondadas, success=receita, danger=despesa
+  - Donut chart (Categorias): cores dos envelopes, legenda lateral
+  - Line chart (Patrimônio): linha brand-500, área fill brand-glow
+  - Botão "Exportar PDF" e "Exportar CSV" no header
 
-- [ ] **FASE-1-013** — Páginas de Auth (skeleton)
-  `apps/web/src/app/(auth)/`:
-  - `login/page.tsx`: email + senha + OAuth Google
-  - `register/page.tsx`: nome + email + senha + telefone
-  - `forgot-password/page.tsx`
-  - `reset-password/page.tsx`
+- [ ] **FASE-1-012** — Auth pages
+  Criar páginas em `apps/web/src/app/(auth)/`:
 
-- [ ] **FASE-1-014** — Wizard de Onboarding (skeleton)
-  `apps/web/src/app/(auth)/onboarding/`:
-  - Layout com ProgressBar (etapa 1 de 5)
-  - `step-1/`: cadastro básico
-  - `step-2/`: verificação OTP
-  - `step-3/`: perfil financeiro
-  - `step-4/`: primeira conta
-  - `step-5/`: tour dos envelopes
+  **Login** (`login/page.tsx`):
+  - Layout dois painéis: esquerda (form) / direita (visual/brand)
+  - Painel direito: gradiente dark + logo gigante + tagline "Organize. Economize. Invista."
+  - Form: inputs com ícones Lucide, botão "Entrar com Google" (border ghost)
+  - Link "Criar conta" e "Esqueci a senha"
 
-  **COMMIT:** `git commit -m "feat(fase-1): design system, layout, todas as páginas em skeleton"`
+  **Register** (`register/page.tsx`):
+  - Similar ao login com campos: nome completo, email, telefone (WhatsApp), senha
+  - Password strength indicator (barras coloridas)
+  - Checkbox de aceite dos termos
+
+  **Forgot/Reset**: formulários simples e limpos
+
+- [ ] **FASE-1-013** — Onboarding wizard
+  Criar `apps/web/src/app/(auth)/onboarding/layout.tsx`:
+  - Progress bar no topo: 5 etapas, brand-500 como fill
+  - Logo centralizado
+  - Container max-w-lg centralizado
+
+  Criar steps:
+  - `step-1/`: saudação + resumo do que vem a seguir (visual motivador)
+  - `step-2/`: OTP input — 6 caixas individuais, auto-focus next
+  - `step-3/`: slider de renda + cards de situação financeira + cards de objetivo
+  - `step-4/`: escolha "Adicionar manual" vs "Conectar banco" (placeholder Pluggy)
+  - `step-5/`: tour dos envelopes com porcentagens + donut animado + botão "Começar"
+
+- [ ] **FASE-1-014** — Loading e empty states globais
+  Criar variantes de skeleton para: card de saldo, lista de transações, card de conta
+  Criar empty states para: sem transações, sem contas, sem metas, sem contas a pagar
+  Todos com ilustração SVG inline estilizada com brand colors
+
+- [ ] **FASE-1-015** — Commit da Fase 1
+
+  ```bash
+  git add -A && git commit -m "feat(fase-1): design system premium, layout completo, todas as páginas"
+  ```
+
+  Atualizar CLAUDE.md: marcar Fase 1 como concluída.
 
 ---
 
 ## FASE 2 — AUTENTICAÇÃO E ONBOARDING
 
-**Objetivo:** Fluxo completo de registro, login, OTP, OAuth e onboarding funcional.
-**Critério de conclusão:** Novo usuário consegue criar conta, verificar, onboardar e acessar dashboard.
+**Meta:** Fluxo completo de registro → OTP → onboarding → dashboard.
 
-- [ ] **FASE-2-001** — Configurar Supabase Auth no NestJS
-  `apps/api/src/auth/`:
-  - `auth.module.ts`, `auth.service.ts`, `auth.controller.ts`
-  - `jwt.strategy.ts`: valida token Supabase
-  - `jwt-auth.guard.ts`: guard para rotas protegidas
-  - `get-user.decorator.ts`: decorator `@GetUser()` extrai user do request
+- [ ] **FASE-2-001** — Módulo Auth no NestJS
+  Criar `apps/api/src/auth/` com: módulo, service, controller, JWT strategy, guard, decorator `@GetUser()`
+  Rate limiting: 5 tentativas/15min em `/auth/login` via `@nestjs/throttler`
 
-- [ ] **FASE-2-002** — Endpoints de Auth no NestJS
+- [ ] **FASE-2-002** — Endpoints de auth
 
   ```
-  POST /auth/register    → criar user + subscription free + preferences
-  POST /auth/login       → retornar tokens em HttpOnly cookies
-  POST /auth/refresh     → renovar access token
-  POST /auth/logout      → invalidar cookies
+  POST /auth/register   → cria user + subscription(free,trialing) + preferences
+  POST /auth/login      → valida credenciais → tokens em HttpOnly cookies
+  POST /auth/refresh    → renova access token
+  POST /auth/logout     → limpa cookies
   POST /auth/forgot-password
   POST /auth/reset-password
   ```
 
-  Rate limiting: 5 req/15min no `/auth/login` via `@nestjs/throttler`
+- [ ] **FASE-2-003** — Supabase Auth no Next.js
+  Instalar e configurar `@supabase/ssr`
+  Criar `apps/web/src/lib/supabase/client.ts` e `server.ts`
+  Criar `apps/web/src/middleware.ts`: proteger `(app)/*`, redirecionar por `onboarding_completed`
 
-- [ ] **FASE-2-003** — Configurar Supabase Auth no Next.js
-  Instalar `@supabase/ssr`, `@supabase/supabase-js`
-  Criar `apps/web/src/lib/supabase/`:
-  - `client.ts`: browser client
-  - `server.ts`: server component client
-  - `middleware.ts`: refresh de sessão
-  Criar `apps/web/src/middleware.ts`: proteger rotas `(app)/*`
+- [ ] **FASE-2-004** — Form de Register funcional
+  Conectar à `POST /api/auth/register` (via API Route Next.js como BFF)
+  Validação zod: email válido, senha 8+ chars 1 maiúscula 1 número, nome obrigatório
+  Feedback: toast de sucesso, erros inline por campo
 
-- [ ] **FASE-2-004** — Implementar página de Register
-  Formulário com `react-hook-form` + `zod`:
-  - Validação: email válido, senha forte (8+ chars, 1 maiúscula, 1 número), nome obrigatório
-  - Submit: `POST /auth/register` via API route Next.js
-  - Feedback: loading state, erro inline, redirect para onboarding step-1
+- [ ] **FASE-2-005** — Form de Login funcional
+  Conectar à API, armazenar tokens em cookies, redirect para dashboard ou onboarding
+  OAuth Google: configurar via Supabase
+  "Esqueci a senha": fluxo completo
 
-- [ ] **FASE-2-005** — Implementar página de Login
-  - Form email + senha
-  - "Entrar com Google" via Supabase OAuth
-  - Remember me (refresh token persistente)
-  - Link "Esqueci a senha"
-  - Redirect para dashboard se já autenticado
+- [ ] **FASE-2-006** — Onboarding steps funcionais
+  Cada step: `PATCH /api/onboarding/progress { step: N, data: {...} }`
+  Estado do step salvo no banco — se fechar e reabrir, continua de onde parou
+  Step final: `PATCH /api/onboarding/complete` → ativa trial 14 dias
 
-- [ ] **FASE-2-006** — Implementar Recuperação de Senha
-  - `forgot-password`: envia email via Supabase
-  - `reset-password`: nova senha + confirmação
+- [ ] **FASE-2-007** — Middleware de proteção de rotas
+  Verificar JWT em todo request de `(app)/*`
+  Verificar `onboarding_completed` → redirect se false
+  Verificar plano para rotas premium → redirect com parâmetro `upgrade=true`
 
-- [ ] **FASE-2-007** — Wizard Onboarding Step 1-2 (Cadastro + OTP)
-  - Step 1 é o próprio registro (redirecionar se já cadastrou)
-  - Step 2: input de 6 dígitos OTP
-  - Reenviar OTP após 60s
-  - Salvar progresso: `PATCH /onboarding/progress { step: 2 }`
+- [ ] **FASE-2-008** — Commit da Fase 2
 
-- [ ] **FASE-2-008** — Wizard Onboarding Step 3 (Perfil Financeiro)
-  Form:
-  - Renda mensal (slider + input numérico)
-  - Situação atual: cards selecionáveis (endividado / equilibrado / investindo)
-  - Objetivo principal: cards selecionáveis
-  Salvar em `user_preferences` + `PATCH /onboarding/progress { step: 3, financialProfile: {...} }`
-
-- [ ] **FASE-2-009** — Wizard Onboarding Step 4 (Primeira Conta)
-  Duas opções:
-  a) "Adicionar manualmente": form nome + tipo + saldo inicial → `POST /accounts`
-  b) "Conectar banco" (placeholder que diz "em breve" — Pluggy vem na Fase 4)
-  Salvar progresso: `step: 4`
-
-- [ ] **FASE-2-010** — Wizard Onboarding Step 5 (Tour Envelopes)
-  - Explicação animada dos 4 envelopes com as % da metodologia Me Poupe!
-  - Essencial ≤55% · Não Essencial ≤10% · Crescimento ≤10% · Investimento ≥25%
-  - Botão "Concluir" → `PATCH /onboarding/complete`
-  - Backend: `onboarding_completed = true` + ativa trial 14 dias
-  - Redirect: `/dashboard` com welcome toast
-
-- [ ] **FASE-2-011** — Middleware de proteção
-  `apps/web/src/middleware.ts`:
-  - Rotas `(app)/*`: redireciona para `/login` se sem sessão
-  - Verifica `onboarding_completed`; redireciona para `/onboarding` se false
-  - Rotas `(auth)/*`: redireciona para `/dashboard` se já autenticado
-
-  **COMMIT:** `git commit -m "feat(fase-2): auth completo, onboarding 5 etapas"`
+  ```bash
+  git add -A && git commit -m "feat(fase-2): auth completo supabase, onboarding 5 etapas"
+  ```
 
 ---
 
 ## FASE 3 — CRUD CORE
 
-**Objetivo:** Todos os módulos financeiros funcionais com dados reais.
-**Critério de conclusão:** Usuário consegue criar, ler, editar, excluir transações, contas, orçamentos, metas e bills.
+**Meta:** Todos os módulos financeiros funcionais com dados reais no banco.
 
-- [ ] **FASE-3-001** — Módulo Accounts (NestJS)
-  `apps/api/src/accounts/`:
-  - `AccountsService`: CRUD com filtro userId obrigatório
-  - `CreateAccountDto`, `UpdateAccountDto` com class-validator
-  - Cálculo de saldo de cartão de crédito (fatura atual)
-  - Testes unitários mínimos do service
+- [ ] **FASE-3-001** — Módulo Accounts (NestJS + Frontend)
+  Service: CRUD com `userId` obrigatório em toda query
+  Cálculo de fatura de cartão: despesas entre `closingDay` e `dueDay`
+  Frontend: conectar página `/accounts`, formulário validado, confirmação de exclusão
 
-- [ ] **FASE-3-002** — Módulo Accounts (Frontend)
-  Conectar página `/accounts` à API:
-  - Listar contas agrupadas por tipo
-  - Modal criar conta: form validado com zod
-  - Modal editar conta
-  - Confirmação de exclusão (`ConfirmDialog`)
-  - Saldo formatado com `MoneyDisplay`
+- [ ] **FASE-3-002** — Módulo Categories (NestJS + Frontend)
+  Listar categorias do sistema + personalizadas do usuário
+  CRUD de categorias personalizadas
+  Configurações de categorias na página `/settings`
 
-- [ ] **FASE-3-003** — Módulo Categories (NestJS)
-  `apps/api/src/categories/`:
-  - Listar: categorias do sistema + personalizadas do usuário
-  - CRUD de categorias personalizadas (userId obrigatório)
-  - Seed já populou categorias de sistema na Fase 0
+- [ ] **FASE-3-003** — Módulo Transactions (NestJS)
+  Listagem com filtros: `startDate`, `endDate`, `accountId`, `categoryId`, `type`, `status`, `search`
+  Paginação: `page` + `limit` com `meta: { total, page, perPage, totalPages }`
+  Lógica de recorrência: criar instâncias futuras para 12 meses
+  Lógica de parcelamento: criar N instâncias com `installmentNumber`
+  Atualizar `account.balance` em toda criação/edição/deleção
+  Soft delete + registro em `audit_logs`
 
-- [ ] **FASE-3-004** — Módulo Transactions (NestJS)
-  `apps/api/src/transactions/`:
-  - `TransactionsService`: CRUD completo
-  - Listagem com filtros: `startDate`, `endDate`, `accountId`, `categoryId`, `type`, `status`, `search`
-  - Paginação: `page` + `limit`, retornar `{ data, meta: { total, page, perPage, totalPages } }`
-  - Lógica de recorrência: ao criar recorrente, gerar instâncias até 12 meses à frente
-  - Lógica de parcelamento: ao criar parcelado, gerar N instâncias
-  - Atualização de saldo da conta ao criar/editar/deletar transação
-  - Soft delete + audit log
+- [ ] **FASE-3-004** — Módulo Transactions (Frontend)
+  Tabela com infinite scroll ou paginação
+  Filtros funcionais com debounce
+  Modal criar/editar com todos os campos
+  Campos condicionais: conta destino (se transferência), frequência (se recorrente), parcelas (se parcelado)
 
-- [ ] **FASE-3-005** — Módulo Transactions (Frontend)
-  Conectar página `/transactions`:
-  - Tabela com infinite scroll (ou paginação)
-  - Filtros funcionais (atualizam query string + refetch)
-  - Busca por descrição (debounce 300ms)
-  - Modal criar/editar: todos os campos do spec
-  - Ao criar transação de transferência: exibir campo "conta destino"
-  - Ao marcar recorrente: exibir opções de frequência + data fim
-  - Ao marcar parcelado: exibir campo "nº de parcelas"
+- [ ] **FASE-3-005** — Módulo Bills (NestJS + Frontend)
+  Cron job diário: atualizar `status = overdue` se vencida e não paga
+  `POST /bills/:id/pay`: atualiza status, cria transaction, registra `paid_at`
+  Frontend: calendário funcional, lista por status, formulário de criação
 
-- [ ] **FASE-3-006** — Módulo Bills (NestJS)
-  `apps/api/src/bills/`:
-  - CRUD completo
-  - Job diário (cron): atualizar status para `overdue` se `due_date < today` e status = `pending`
-  - Endpoint `POST /bills/:id/pay`: atualiza status, cria transaction associada
+- [ ] **FASE-3-006** — Módulo Goals (NestJS + Frontend)
+  `POST /goals/:id/contribute`: adiciona aporte, atualiza `currentAmount`
+  Cálculo automático de `monthlyContribution` sugerida
+  Frontend: grid de cards com progress circular SVG, modal de detalhe com histórico
 
-- [ ] **FASE-3-007** — Módulo Bills (Frontend)
-  Conectar página `/bills`:
-  - Calendário: exibir bills por dia de vencimento
-  - Lista por status com filtro
-  - Modal adicionar bill: nome, valor, vencimento, categoria, conta
-  - Botão "Marcar como pago" → `POST /bills/:id/pay`
-  - Badge de status colorido
+- [ ] **FASE-3-007** — Módulo Budgets (NestJS + Frontend)
+  `GET /budgets?month&year` com `spentAmount` calculado das transações
+  Recalcular `spentAmount` ao criar/editar/deletar transação (via event ou trigger)
+  `GET /budgets/summary`: totais por envelope com % usada
+  Frontend: seletor de mês, envelopes coloridos, alertas de 90%+
 
-- [ ] **FASE-3-008** — Módulo Goals (NestJS)
-  `apps/api/src/goals/`:
-  - CRUD + `POST /goals/:id/contribute` (adicionar aporte)
-  - Cálculo: `monthly_contribution` sugerido = `(target - current) / months_remaining`
-  - Projeção de conclusão baseada em aportes históricos
+- [ ] **FASE-3-008** — Dashboard com dados reais
+  Conectar todas as APIs ao dashboard
+  Saldo consolidado = soma de todas as contas ativas
+  Receitas/despesas do mês via filtro de transações
+  Loading skeletons enquanto carrega (shimmer animation)
+  SWR ou React Query para cache e revalidação
 
-- [ ] **FASE-3-009** — Módulo Goals (Frontend)
-  Conectar página `/goals`:
-  - Grid de cards com progress circular
-  - Modal criar meta: campos completos
-  - Modal detalhe: histórico de aportes + projeção + "Adicionar aporte"
-  - Progress bar animado
+- [ ] **FASE-3-009** — Commit da Fase 3
 
-- [ ] **FASE-3-010** — Módulo Budgets/Envelopes (NestJS)
-  `apps/api/src/budgets/`:
-  - `GET /budgets?month&year`: retorna orçamentos do mês com `spent_amount` calculado
-  - `POST /budgets/configure`: upsert batch de orçamentos do mês
-  - Recalculo automático de `spent_amount` via trigger/job quando transação é criada
-  - `GET /budgets/summary`: retorna totais por envelope
-
-- [ ] **FASE-3-011** — Módulo Budgets (Frontend)
-  Conectar página `/budget`:
-  - Seletor mês/ano com navegação prev/next
-  - 4 seções de envelopes com barras de progresso coloridas
-  - Alerta visual se > 90% do orçado
-  - Modal editar orçamento da categoria
-  - Wizard "Configurar orçamento" (primeira vez): pré-sugere com % da metodologia
-
-- [ ] **FASE-3-012** — Dashboard com dados reais
-  Conectar página `/dashboard` às APIs:
-  - Calcular saldo consolidado: `GET /accounts` → soma balances
-  - Receitas vs despesas do mês: `GET /transactions` com filtro mês
-  - Envelopes: `GET /budgets/summary`
-  - Próximas bills: `GET /bills?status=pending` top 5
-  - Metas: `GET /goals` top 3
-  - Últimas transações: `GET /transactions?limit=10`
-  - Loading skeletons enquanto carrega
-  - Refresh automático a cada 5 minutos (ou SWR com revalidate)
-
-  **COMMIT:** `git commit -m "feat(fase-3): todos os módulos CRUD funcionais"`
+  ```bash
+  git add -A && git commit -m "feat(fase-3): todos os módulos CRUD funcionais com dados reais"
+  ```
 
 ---
 
 ## FASE 4 — OPEN FINANCE (PLUGGY)
 
-**Objetivo:** Usuário consegue conectar conta bancária e ver transações sincronizadas.
-**Critério de conclusão:** Nubank conectado → transações aparecem no dashboard < 5min.
+**Meta:** Conectar conta bancária e ver transações sincronizadas automaticamente.
 
 - [ ] **FASE-4-001** — Módulo Pluggy (NestJS)
-  `apps/api/src/pluggy/`:
-  - `PluggyService`: wrapper para Pluggy API (axios)
-  - `POST /pluggy/connect-token`: gera connect token (válido 30min) para o widget
-  - `GET /pluggy/items`: lista conexões do usuário
-  - `DELETE /pluggy/items/:id`: desconectar instituição
-  - `POST /pluggy/items/:id/sync`: força sync manual
+  Wrapper `PluggyService` para Pluggy API
+  `POST /pluggy/connect-token`: connect token válido 30min
+  `GET /pluggy/items`, `DELETE /pluggy/items/:id`, `POST /pluggy/items/:id/sync`
 
-- [ ] **FASE-4-002** — Webhook Pluggy (NestJS)
-  `apps/api/src/webhooks/pluggy.webhook.ts`:
-  - Validar `x-pluggy-signature` header
-  - Evento `item/updated` → enfileirar job de sync
-  - Evento `item/error` → atualizar status + notificar usuário
+- [ ] **FASE-4-002** — Webhook receiver Pluggy
+  `POST /webhooks/pluggy`: validar signature, enfileirar job por evento
+  Eventos: `item/updated` → sync · `item/error` → atualizar status + notificar
 
 - [ ] **FASE-4-003** — Sync Worker (BullMQ)
-  `apps/api/src/sync/sync.worker.ts`:
-  - Fila `sync:pluggy` processada pelo worker
-  - Para cada item: GET transações desde `last_synced_at`
-  - Normalizar campos Pluggy → modelo interno
-  - Deduplicação: `INSERT ON CONFLICT (pluggy_transaction_id) DO NOTHING`
-  - Atualizar `account.balance` e `account.last_synced_at`
-  - Enfileirar job de categorização IA em batch
+  Fila `sync:pluggy`: buscar transações desde `lastSyncedAt`, normalizar, deduplicar
+  `INSERT ON CONFLICT (pluggy_transaction_id) DO NOTHING`
+  Atualizar saldos e `lastSyncedAt`
+  Cron: a cada 6h enfileirar sync de todos os itens ativos
 
-- [ ] **FASE-4-004** — Categorização automática (NestJS + Claude)
-  `apps/api/src/ai/categorization.service.ts`:
-  - Receber batch de até 50 transações não categorizadas
-  - Enviar para Claude API com lista de categorias disponíveis
-  - Parsear resposta JSON com `categoryId` por transação
-  - Cache Redis: hash da descrição → categoryId (TTL 30 dias)
-  - Fallback heurístico: keyword matching se Claude offline
+- [ ] **FASE-4-004** — Categorização automática por IA
+  Batch de até 50 transações → Claude API → array de `{ id, categoryId }`
+  Cache Redis: hash(descrição) → categoryId, TTL 30 dias
+  Fallback heurístico: keyword matching se Claude offline
 
-- [ ] **FASE-4-005** — Pluggy Connect Widget (Frontend)
-  `apps/web/src/components/PluggyConnectWidget.tsx`:
-  - Carregar SDK Pluggy via script tag
-  - Buscar connect token: `POST /pluggy/connect-token`
-  - Abrir widget ao clicar "Conectar banco"
-  - Callback de sucesso: mostrar toast + atualizar lista de contas
-  - Callback de erro: mostrar mensagem amigável
+- [ ] **FASE-4-005** — Pluggy Widget (Frontend)
+  Componente `PluggyConnectWidget`: carrega SDK, busca connect token, abre modal
+  Sucesso: toast + reload de contas
+  Status de sincronização: spinner, "Atualizado há X min", banner de reconexão se erro
 
-- [ ] **FASE-4-006** — UI de status de sincronização
-  - Badge "Sincronizando..." com spinner quando `status = updating`
-  - Banner amarelo quando `status = login_error`: "Reconecte seu [banco]"
-  - Botão "Atualizar" força sync manual
-  - Timestamp "Atualizado há X min"
-  - Cron no backend: a cada 6h, enfileirar sync de todos os itens ativos
+- [ ] **FASE-4-006** — Commit da Fase 4
 
-  **COMMIT:** `git commit -m "feat(fase-4): open finance pluggy, sync worker, categorização IA"`
+  ```bash
+  git add -A && git commit -m "feat(fase-4): pluggy open finance, sync worker, categorização IA"
+  ```
 
 ---
 
 ## FASE 5 — NOTIFICAÇÕES E WHATSAPP
 
-**Objetivo:** Lembretes de bills via WhatsApp e confirmação de pagamento por "SIM".
-**Critério de conclusão:** Bill criada com vencimento em 3 dias → WhatsApp recebido → responde SIM → bill marcada como paga.
+**Meta:** Lembrete de bill via WhatsApp → usuário responde SIM → bill marcada como paga.
 
 - [ ] **FASE-5-001** — Serviço de notificações multi-canal
-  `apps/api/src/notifications/`:
-  - `NotificationsService`: método `send({ userId, type, channel, title, body, data, scheduledAt })`
-  - Cria registro na tabela `notifications`
-  - Enfileira job `notifications:dispatch` via BullMQ
+  `NotificationsService.send()`: cria registro na tabela, enfileira job `notifications:dispatch`
+  Notification Worker: router por channel com retry 3x + fallback email
 
-- [ ] **FASE-5-002** — Notification Worker
-  `apps/api/src/notifications/notification.worker.ts`:
-  - Processa fila `notifications:dispatch`
-  - Router por channel: `whatsapp`, `email`, `push`, `in_app`
-  - Retry 3x com backoff; após falha: fallback para email
+- [ ] **FASE-5-002** — Gateway WhatsApp abstrato
+  Interface `WhatsAppGateway` com `sendMessage()` e `sendTemplate()`
+  Implementação `ZApiGateway`: POST para Z-API com rate limit (1 msg/usuário/tipo/dia via Redis)
+  Formatar número para E.164 (+55...)
 
-- [ ] **FASE-5-003** — Gateway WhatsApp (abstração)
-  `apps/api/src/whatsapp/whatsapp.gateway.ts`:
+- [ ] **FASE-5-003** — Webhook WhatsApp inbound
+  `POST /webhooks/whatsapp`: validar token, parsear sender + body
+  "SIM" (case-insensitive) → `BillsService.confirmPaymentByWhatsApp(userId)`
+  "NÃO"/"NAO" → responder com opção de reagendamento
+  Número desconhecido → log + ignorar
 
-  ```typescript
-  interface WhatsAppGateway {
-    sendMessage(phone: string, message: string): Promise<void>
-    sendTemplate(phone: string, template: string, vars: Record<string, string>): Promise<void>
-  }
+- [ ] **FASE-5-004** — Cron de lembretes de bills
+  Cron `0 8 * * *` (08:00 BRT): bills com `dueDate = hoje + N dias` e `notificationSentAt IS NULL`
+  Template: "Oi [Nome]! 📅 *[Nome da conta]* vence em [X] dias — R$ [valor]. Responda *SIM* para confirmar."
+  Atualizar `notificationSentAt` após envio
+
+- [ ] **FASE-5-005** — Preferências de notificação (Frontend)
+  Seção em `/settings`: toggle WhatsApp, slider "avisar X dias antes", número do WhatsApp, botão teste
+
+- [ ] **FASE-5-006** — Commit da Fase 5
+
+  ```bash
+  git add -A && git commit -m "feat(fase-5): notificações, whatsapp lembretes e confirmação"
   ```
-
-  Implementação: `ZApiGateway` (usa Z-API)
-  Config: injetado via NestJS DI — trocar implementação sem alterar consumidores
-
-- [ ] **FASE-5-004** — Integração Z-API
-  `apps/api/src/whatsapp/zapi.gateway.ts`:
-  - `sendMessage`: POST para `https://api.z-api.io/instances/{id}/token/{token}/send-text`
-  - Rate limit: máx 1 msg/usuário/tipo/dia (Redis counter)
-  - Formatar número para E.164 (+55...)
-  - Log de envio na tabela `notifications`
-
-- [ ] **FASE-5-005** — Webhook WhatsApp inbound
-  `apps/api/src/webhooks/whatsapp.webhook.ts`:
-  - `POST /webhooks/whatsapp`: recebe mensagens do Z-API
-  - Validar token no header
-  - Parsear `sender_phone` + `message_body`
-  - Lookup: `phone → user` via tabela `users`
-  - Se mensagem = "SIM" (case-insensitive): chamar `BillsService.confirmPaymentByWhatsApp(userId)`
-  - Se mensagem = "NÃO"/"NAO": responder com opção de reagendamento
-  - Número desconhecido: logar e ignorar
-
-- [ ] **FASE-5-006** — Cron de lembretes de bills
-  `apps/api/src/bills/bills.scheduler.ts`:
-  - Cron: todo dia às 08:00 BRT (`0 8 * * * America/Sao_Paulo`)
-  - Buscar bills com `due_date = today + N days` e `notification_sent_at IS NULL`
-  - Para cada bill: enfileirar notificação WhatsApp + email
-  - Mensagem template: "Oi [Nome]! 📅 Lembrete: *[nome da conta]* vence em [X] dias — R$ [valor]. Responda *SIM* para confirmar o pagamento."
-  - Atualizar `notification_sent_at`
-
-- [ ] **FASE-5-007** — Preferências de notificação (Frontend)
-  Página `/settings` → seção "Notificações":
-  - Toggle WhatsApp habilitado
-  - Slider "avisar X dias antes" (1–7 dias)
-  - Número do WhatsApp (editar)
-  - Teste de envio: botão "Enviar mensagem de teste"
-
-  **COMMIT:** `git commit -m "feat(fase-5): notificações multi-canal, whatsapp lembretes e confirmação"`
 
 ---
 
 ## FASE 6 — IA COPILOTA NA_TH
 
-**Objetivo:** Chat funcional com Na_th para análise financeira e ações via tool use.
-**Critério de conclusão:** Usuário conversa com Na_th, pergunta saldo, Na_th acessa dados reais e responde.
+**Meta:** Chat funcional com Na_th que lê dados reais e executa ações confirmadas.
 
 - [ ] **FASE-6-001** — Módulo AI (NestJS)
-  `apps/api/src/ai/`:
-  - `AiService`: gerencia conversas, system prompt, tool calling
-  - `ConversationsRepository`: CRUD em `ai_conversations`
-  - `POST /ai/chat`: recebe `{ message, sessionId }`, retorna `{ reply, sessionId }`
-  - `GET /ai/conversations`: histórico de sessões
-  - `GET /ai/insight-daily`: retorna/gera insight do dia (cache Redis 24h)
+  `AiService`: gerencia sessões, monta system prompt, orquestra tool calling
+  `POST /ai/chat { message, sessionId }` → `{ reply, sessionId, pendingAction? }`
+  `GET /ai/conversations`, `GET /ai/insight-daily` (cache Redis 24h)
 
-- [ ] **FASE-6-002** — System prompt e contexto financeiro
-  `apps/api/src/ai/context.builder.ts`:
-  - Gera snapshot financeiro do usuário para injetar no system prompt
-  - Inclui: saldo total, receitas/despesas do mês, top 5 categorias, bills pendentes, metas ativas
-  - Snapshot gerado a cada nova sessão; cacheado por 5 min
-  - System prompt base: copiar da seção 7 do CLAUDE.md + contexto gerado
+- [ ] **FASE-6-002** — Context builder
+  Snapshot financeiro: saldo total, mês atual (receitas/despesas), top 5 categorias, bills pendentes, metas ativas
+  Injetado no system prompt a cada sessão. Cache 5min por userId.
 
-- [ ] **FASE-6-003** — Tool definitions para Claude API
-  `apps/api/src/ai/tools/`:
-  Definir e implementar tools:
-  - `get_financial_summary`: retorna saldo, mês atual receitas/despesas
-  - `get_transactions`: lista transações com filtros (período, categoria, conta)
-  - `create_transaction`: cria lançamento (requer flag `requiresConfirmation: true`)
-  - `create_goal`: cria meta financeira (requer confirmação)
-  - `update_bill_status`: marca bill como paga (requer confirmação)
-  - `get_budget_status`: retorna situação dos envelopes
+- [ ] **FASE-6-003** — Tool definitions e executores
+  Implementar tools: `get_financial_summary`, `get_transactions`, `create_transaction`,
+  `create_goal`, `update_bill_status`, `get_budget_status`
+  Tools de escrita: retornam `{ pendingAction }` para confirmação no frontend
 
 - [ ] **FASE-6-004** — Orquestração de tool calling
-  `apps/api/src/ai/tool-executor.ts`:
-  - Processar resposta da Claude API com `stop_reason: "tool_use"`
-  - Executar a tool chamada passando userId obrigatoriamente
-  - Se `requiresConfirmation`: retornar `{ pendingAction: { tool, args, description } }` ao frontend
-  - Após confirmação do usuário: `POST /ai/chat/confirm-action { actionId }` → executa
+  Processar `stop_reason: "tool_use"`, executar tool, retornar resultado à Claude API
+  `POST /ai/chat/confirm-action { actionId }`: executa ação confirmada pelo usuário
 
-- [ ] **FASE-6-005** — Interface de Chat (Frontend)
-  Conectar página `/chat`:
-  - Enviar mensagem: `POST /ai/chat`
-  - Renderizar histórico de mensagens com scroll automático para o fim
-  - Bubble do usuário: direita, fundo brand.primary
-  - Bubble Na_th: esquerda, avatar da Na_th, fundo neutro
-  - Loading: "Na_th está analisando..." com animação de dots
-  - Se resposta tem `pendingAction`: exibir modal de confirmação antes de executar
+- [ ] **FASE-6-005** — Interface de chat (Frontend)
+  Conectar página `/chat` à API
+  Bubbles com animação de entrada, auto-scroll, loading dots animados
+  Modal de confirmação para ações pendentes
+  Sugestões de perguntas rápidas como chips clicáveis
 
-- [ ] **FASE-6-006** — Insight diário no Dashboard
-  - `GET /ai/insight-daily` ao carregar dashboard
-  - Exibir no card "Copilota Na_th": uma frase de insight gerado pela IA
-  - Exemplo: "Seus gastos com alimentação cresceram 23% em relação ao mês passado 🍔"
-  - Cacheado por 24h por usuário; gerado em background job `InsightWorker`
+- [ ] **FASE-6-006** — Insight diário no dashboard
+  `InsightWorker`: job diário que gera 1 insight por usuário ativo, salva no Redis
+  Conectar card Na_th no dashboard ao `GET /ai/insight-daily`
 
 - [ ] **FASE-6-007** — Limite de mensagens por plano
-  - Free: 10 mensagens/mês (contador em Redis)
-  - Premium: ilimitado
-  - Ao atingir limite: exibir modal de upgrade no lugar do input
+  Free: 10 msg/mês (contador Redis). Premium: ilimitado.
+  Frontend: após limite → overlay de upgrade no chat
 
-  **COMMIT:** `git commit -m "feat(fase-6): copilota Na_th com tool calling, chat funcional, insights"`
+- [ ] **FASE-6-008** — Commit da Fase 6
+
+  ```bash
+  git add -A && git commit -m "feat(fase-6): copilota Na_th tool calling, chat, insights"
+  ```
 
 ---
 
 ## FASE 7 — BILLING E ASSINATURAS
 
-**Objetivo:** Pagamento de plano premium funcional end-to-end com Stripe.
-**Critério de conclusão:** Usuário free faz upgrade → paga com cartão → features premium liberadas imediatamente.
+**Meta:** Pagamento premium funcional end-to-end com Stripe.
 
 - [ ] **FASE-7-001** — Módulo Subscriptions (NestJS)
-  `apps/api/src/subscriptions/`:
-  - `SubscriptionsService`: CRUD + verificação de plano
-  - `isPremium(userId)`: boolean para middleware de features
-  - `POST /subscriptions/checkout`: cria Stripe Checkout Session (hosted)
-  - `POST /subscriptions/portal`: cria Stripe Billing Portal session
-  - `DELETE /subscriptions/me`: cancela no Stripe + atualiza tabela
+  `POST /subscriptions/checkout`: cria Stripe Checkout Session
+  `POST /subscriptions/portal`: cria Billing Portal session
+  `DELETE /subscriptions/me`: cancela assinatura
 
 - [ ] **FASE-7-002** — Webhook Stripe
-  `apps/api/src/webhooks/stripe.webhook.ts`:
-  - Validar `stripe-signature` (HMAC)
-  - Tratar eventos (idempotente com Redis):
-    - `customer.subscription.created` → ativar premium
-    - `customer.subscription.updated` → atualizar plan/status
-    - `customer.subscription.deleted` → downgrade para free
-    - `invoice.payment_failed` → status `past_due` + notificar usuário
-    - `customer.subscription.trial_will_end` → email de lembrete (3 dias antes)
+  Validar `stripe-signature`, processar com idempotency key (Redis)
+  Eventos: `subscription.created/updated/deleted`, `invoice.payment_failed`, `trial_will_end`
 
-- [ ] **FASE-7-003** — Middleware de features premium
-  `apps/api/src/common/guards/premium.guard.ts`:
-  - `@RequiresPremium()` decorator
-  - Consulta `subscriptions` tabela; bloqueia se `plan = free`
-  - Aplicar em: `/ai/chat`, `/pluggy/*`, `/reports/export`, `/transactions` (além de 50/mês)
+- [ ] **FASE-7-003** — Guard de features premium
+  `@RequiresPremium()` decorator + guard
+  Aplicar em: `/ai/chat`, `/pluggy/*`, `/reports/export`, transações além de 50/mês
 
-- [ ] **FASE-7-004** — Página de Planos (Frontend)
-  `apps/web/src/app/(app)/settings/subscription/page.tsx`:
-  - Plano atual + data de renovação
-  - Cards: Free vs Premium Mensal vs Premium Anual
-  - "Assinar Agora" → `POST /subscriptions/checkout` → redirect para Stripe Checkout
-  - "Gerenciar Assinatura" → `POST /subscriptions/portal` → redirect para Stripe Portal
-  - Trial: exibir "X dias restantes de trial"
+- [ ] **FASE-7-004** — Página de planos (Frontend)
+  Cards: Free · Premium Mensal · Premium Anual
+  Highlight do plano anual: "Economize 2 meses" badge em accent-500
+  CTA "Assinar" → Stripe Checkout, "Gerenciar" → Stripe Portal
 
-- [ ] **FASE-7-005** — Bloqueios de features free (Frontend)
-  - Ao acessar feature premium sem plano: exibir `UpgradePrompt` component
-  - No chat: após 10 mensagens, substituir input por banner de upgrade
-  - No Open Finance: "Conectar banco" disponível apenas para premium
-  - No relatório: exportar PDF → modal de upgrade
+- [ ] **FASE-7-005** — Bloqueios de features (Frontend)
+  `<PremiumGate>` component: blur + overlay + CTA de upgrade
+  Aplicar em: chat (após 10 msgs), Open Finance, exportação, relatórios longos
 
 - [ ] **FASE-7-006** — Emails transacionais
-  Configurar Resend (ou SendGrid):
-  - Boas-vindas após registro
-  - Confirmação de assinatura premium
-  - Trial expirando em 3 dias
-  - Falha de pagamento
-  - Confirmação de cancelamento
+  Configurar Resend: boas-vindas, assinatura ativa, trial expirando, falha de pagamento
 
-  **COMMIT:** `git commit -m "feat(fase-7): billing stripe, planos, emails transacionais"`
+- [ ] **FASE-7-007** — Commit da Fase 7
+
+  ```bash
+  git add -A && git commit -m "feat(fase-7): billing stripe, planos premium, emails"
+  ```
 
 ---
 
 ## FASE 8 — RELATÓRIOS E EXPORTAÇÃO
 
-**Objetivo:** Relatórios visuais completos com exportação PDF/CSV.
-**Critério de conclusão:** Todos os 6 relatórios renderizam com dados reais; exportação PDF funciona.
+**Meta:** 6 relatórios visuais com dados reais e exportação PDF/CSV.
 
 - [ ] **FASE-8-001** — Engine de relatórios (NestJS)
-  `apps/api/src/reports/`:
-  - `ReportsService` com métodos:
-    - `getCashFlow(userId, startDate, endDate)`: receitas vs despesas por mês
-    - `getExpensesByCategory(userId, startDate, endDate)`: totais por categoria
-    - `getNetWorthHistory(userId, months)`: saldo total ao longo do tempo
-    - `getBudgetHistory(userId, months)`: gastos por envelope histórico
-  - Todos os queries otimizados com índices; máximo 12 meses por query
+  `ReportsService`: `getCashFlow()`, `getExpensesByCategory()`, `getNetWorthHistory()`, `getBudgetHistory()`
+  Queries otimizadas com índices, máximo 12 meses
 
-- [ ] **FASE-8-002** — Gráficos de relatórios (Frontend)
-  Conectar página `/reports`:
-  - Tab "Fluxo de Caixa": BarChart (Recharts) receitas vs despesas por mês
-  - Tab "Por Categoria": PieChart/DonutChart + tabela ordenada por valor
-  - Tab "Patrimônio": LineChart saldo total ao longo do tempo
-  - Tab "Envelopes": BarChart agrupado por envelope por mês
-  - Todos com filtro de período e seletor de conta
+- [ ] **FASE-8-002** — Gráficos (Frontend)
+  Recharts com tema dark (fundo transparente, grid bg-muted, tooltips bg-overlay)
+  Bar chart (Fluxo de Caixa), Donut (Categorias), Line + Area (Patrimônio), Bar agrupado (Envelopes)
+  Filtros de período e conta em todos os relatórios
 
 - [ ] **FASE-8-003** — Exportação PDF (Worker)
-  `apps/api/src/reports/pdf.worker.ts`:
-  - Job `reports:generate-pdf`
-  - Usar `puppeteer` headless para renderizar template HTML em PDF
-  - Template: relatório formatado com logo Me Poupe+, dados do usuário, gráficos SVG
-  - Salvar no Cloudflare R2
-  - Notificar usuário com link de download (válido 24h)
+  Worker `reports:generate-pdf` com Puppeteer
+  Template HTML com logo, dados do usuário, gráficos SVG
+  Salvar no R2, notificar com link de download (válido 24h)
 
 - [ ] **FASE-8-004** — Exportação CSV
-  - `GET /reports/export/csv?type=transactions&startDate&endDate`
-  - Stream direto (não via worker): gerar CSV on-the-fly com `papaparse` ou manual
-  - Colunas: data, descrição, categoria, conta, tipo, valor, status
+  Stream direto: `GET /reports/export/csv?type=transactions&startDate&endDate`
+  Colunas: data, descrição, categoria, conta, tipo, valor, status
 
-  **COMMIT:** `git commit -m "feat(fase-8): relatórios completos, exportação PDF/CSV"`
+- [ ] **FASE-8-005** — Commit da Fase 8
+
+  ```bash
+  git add -A && git commit -m "feat(fase-8): relatórios completos, PDF, CSV"
+  ```
 
 ---
 
-## FASE 9 — POLIMENTO, QA E DEPLOY
+## FASE 9 — QA, SEGURANÇA E DEPLOY
 
-**Objetivo:** App production-ready, testado, monitorado e deployado.
-**Critério de conclusão:** Deploy funcional no Railway; todos os critérios de aceite do CLAUDE.md atendidos.
+**Meta:** App production-ready, testado, monitorado, deployado.
 
-- [ ] **FASE-9-001** — Testes E2E com Playwright
-  Criar `apps/web/e2e/`:
-  - `auth.spec.ts`: registro → OTP → onboarding → login
-  - `transaction.spec.ts`: criar → editar → deletar transação
-  - `bill-whatsapp.spec.ts`: criar bill → simular resposta SIM → verificar status
-  - `subscription.spec.ts`: upgrade de plano → verificar features liberadas
+- [ ] **FASE-9-001** — Testes de isolamento de dados (SENNA manda)
+  Criar usuários A e B
+  Tentar acessar recursos do usuário A com token do usuário B → deve retornar 403/404
+  Verificar em: transactions, accounts, bills, goals, budgets, ai conversations
 
-- [ ] **FASE-9-002** — Testes unitários NestJS
-  Para cada service principal adicionar spec com Jest:
-  - `transactions.service.spec.ts`: lógica de recorrência, parcelamento, saldo
-  - `bills.service.spec.ts`: cron de overdue, confirmação por WhatsApp
-  - `ai.service.spec.ts`: montagem do system prompt, tool calling
-  - `sync.worker.spec.ts`: deduplicação, categorização
+- [ ] **FASE-9-002** — Testes E2E com Playwright
+  `auth.spec.ts`: registro → OTP → onboarding completo → login
+  `transaction.spec.ts`: criar → editar → excluir
+  `bill.spec.ts`: criar → simular SIM no webhook → verificar status pago
+  `subscription.spec.ts`: upgrade → verificar features liberadas
 
-- [ ] **FASE-9-003** — Auditoria de segurança
-  Checklist OWASP:
-  - [ ] Verificar que user_id de outro usuário retorna 403/404 em todos os endpoints
-  - [ ] CPF não aparece em nenhum log (testar com grep nos logs)
+- [ ] **FASE-9-003** — Testes unitários NestJS
+  `transactions.service.spec.ts`: recorrência, parcelamento, atualização de saldo
+  `bills.service.spec.ts`: cron de overdue, confirmação WhatsApp
+  `ai.service.spec.ts`: montagem do system prompt, tool calling
+
+- [ ] **FASE-9-004** — Checklist de segurança OWASP
+  - [ ] CPF não aparece em nenhum log (grep nos logs de teste)
   - [ ] JWT expirado retorna 401
   - [ ] Rate limiting ativo no `/auth/login`
-  - [ ] Validação de tamanho de payload (max 1MB por request)
-  - [ ] Headers de segurança (CORS, HSTS, CSP, X-Frame-Options) no Next.js
+  - [ ] Headers de segurança: CORS, HSTS, CSP, X-Frame-Options
+  - [ ] Validação de tamanho de payload (1MB max)
+  - [ ] Inputs sanitizados em todos os DTOs
 
-- [ ] **FASE-9-004** — Performance
-  - Lighthouse PWA score > 85 no `/dashboard`
-  - Core Web Vitals: LCP < 2.5s, CLS < 0.1, FID < 100ms
-  - Adicionar `loading.tsx` em todas as rotas do App Router
-  - Lazy loading de componentes pesados (Recharts, chat)
+- [ ] **FASE-9-005** — Performance e PWA
+  Lighthouse score > 85 no `/dashboard`
+  `loading.tsx` em todas as rotas do App Router
+  Lazy loading: Recharts, chat
+  `public/manifest.json` com ícones 192/512
+  Service worker via `next-pwa`
 
-- [ ] **FASE-9-005** — Observabilidade
-  - Sentry: `npm install @sentry/nextjs @sentry/nestjs`
-  - Configurar `sentry.client.config.ts` e `sentry.server.config.ts`
-  - PostHog: adicionar script de analytics no Next.js layout
-  - Health check endpoint: `GET /health` retorna status de DB, Redis e serviços externos
+- [ ] **FASE-9-006** — Observabilidade
+  Sentry: `npm install @sentry/nextjs`; configurar `sentry.client.config.ts` e `sentry.server.config.ts`
+  PostHog: script no layout
+  Endpoint `/health` retorna status de DB e Redis
 
-- [ ] **FASE-9-006** — Deploy Railway (staging)
-  - Criar projeto Railway com serviços: `api`, `web`, `worker`
-  - Configurar PostgreSQL e Redis gerenciados pelo Railway
-  - Adicionar todas as variáveis de ambiente (produção)
-  - Deploy automático via GitHub Actions no push para `main`
+- [ ] **FASE-9-007** — LGPD
+  `GET /users/me/export`: ZIP assíncrono com todos os dados
+  `DELETE /users/me`: soft delete + job de exclusão definitiva em 30 dias
+  Página `/settings/privacy` com os botões
 
-- [ ] **FASE-9-007** — PWA (manifest + service worker)
-  `apps/web/public/manifest.json`:
-  - name: "Me Poupe+", short_name: "MePoupe+"
-  - Ícones: 192x192 e 512x512
-  - display: "standalone", theme_color brand.primary
-  - Configurar `next-pwa` ou service worker manual para cache de assets
+- [ ] **FASE-9-008** — Documentação OpenAPI
+  `@nestjs/swagger` em `main.ts`
+  Todos os DTOs e controllers documentados
+  Swagger em `/api/docs` apenas em `NODE_ENV !== 'production'`
 
-- [ ] **FASE-9-008** — LGPD endpoints
-  - `GET /users/me/export`: ZIP com todos os dados em JSON (assíncrono via worker)
-  - `DELETE /users/me`: soft delete; job de exclusão definitiva em 30 dias
-  - Página de privacidade em `/settings/privacy` com botões para ambas as ações
-
-- [ ] **FASE-9-009** — Documentação OpenAPI
-  - `@nestjs/swagger` configurado em `main.ts`
-  - Todos os DTOs e controllers com decorators `@ApiProperty`, `@ApiOperation`
-  - Swagger disponível em `/api/docs` (apenas em non-production)
+- [ ] **FASE-9-009** — Deploy Railway
+  Criar `railway.toml` ou configurar via CLI
+  Serviços: `api`, `web`, `worker`
+  PostgreSQL e Redis gerenciados pelo Railway
+  Configurar todas as variáveis de ambiente de produção
+  GitHub Actions: deploy automático em push para `main`
 
 - [ ] **FASE-9-010** — Checklist final de aceite
-  Verificar TODOS os critérios da seção 14 do CLAUDE.md:
-  - [ ] Registro em < 3 minutos
-  - [ ] OTP em < 30 segundos
-  - [ ] Transação manual em < 30 segundos
+  - [ ] Registro completo em < 3 minutos
   - [ ] Dashboard carrega em < 2 segundos
-  - [ ] Isolamento de dados (usuário A não acessa dados do B)
+  - [ ] Transação manual criada em < 30 segundos
   - [ ] WhatsApp SIM → bill paga em < 10 segundos
-  - [ ] Pagamento Stripe end-to-end
+  - [ ] Pagamento Stripe end-to-end funcional
+  - [ ] Usuário A não acessa dados do B (isolamento verificado)
   - [ ] CPF não aparece em logs
   - [ ] Categorização automática > 80% de acerto
+  - [ ] Design: Bricolage Grotesque + Geist + Geist Mono aplicados corretamente
+  - [ ] Dark mode funcional em todas as páginas
 
-  **COMMIT FINAL:** `git commit -m "feat(fase-9): QA completo, deploy staging, app production-ready"`
-  **TAG:** `git tag v1.0.0-mvp`
+- [ ] **FASE-9-011** — Commit e tag final
+
+  ```bash
+  git add -A
+  git commit -m "feat(fase-9): QA completo, segurança, deploy, MVP production-ready"
+  git tag v1.0.0-mvp
+  git push origin main --tags
+  ```
+
+  Atualizar CLAUDE.md: marcar todas as fases como `[x] CONCLUÍDO`
 
 ---
 
-## APÊNDICE — TROUBLESHOOTING POR FASE
+## APÊNDICE — TROUBLESHOOTING AUTÔNOMO
 
-### Se travar em qualquer task
-
-1. Anotar o erro em `ERRORS.md` com: task ID, comando executado, mensagem de erro
-2. Tentar solução alternativa (ver seção 10 do CLAUDE.md)
-3. Se não resolver em 2 tentativas: marcar task com `[~]` (bloqueada), avançar para próxima
-4. Voltar para task bloqueada ao final da fase
-
-### Comandos úteis de diagnóstico
+**Se um comando falhar**, tente esta sequência antes de registrar como erro:
 
 ```bash
-# Ver logs do container
-docker-compose logs -f api
+# Docker não sobe
+docker-compose down -v && docker-compose up -d
 
-# Resetar banco de desenvolvimento
-cd apps/api && npx prisma migrate reset --force
+# Prisma falha
+npx prisma migrate reset --force && npx prisma migrate dev --name recovery
 
-# Inspecionar Redis
-docker exec -it mepoupe-redis redis-cli
+# TypeScript com erro de tipo
+npx tsc --noEmit 2>&1 | head -30   # ver erros específicos
 
-# Verificar tipos TypeScript sem compilar
-cd apps/web && npx tsc --noEmit
-cd apps/api && npx tsc --noEmit
+# Build Next.js falha
+rm -rf .next && npm run build
 
-# Rodar testes
-cd apps/api && npm run test
-cd apps/web && npm run test
+# Redis não conecta
+docker exec -it $(docker ps -qf "name=redis") redis-cli ping
+```
 
-# Ver jobs BullMQ em execução
-# Acessar Bull Board (adicionar na Fase 3): http://localhost:3001/queues
+**Comandos úteis no loop de desenvolvimento:**
+
+```bash
+# Rodar tudo local
+docker-compose up -d && cd apps/api && npm run start:dev &  cd apps/web && npm run dev
+
+# Reset completo de dev
+docker-compose down -v && docker-compose up -d && cd apps/api && npx prisma migrate reset --force --skip-seed && npx prisma migrate dev && npx prisma db seed
 ```
