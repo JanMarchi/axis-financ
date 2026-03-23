@@ -588,32 +588,32 @@
 
 **Meta:** Conectar conta bancária e ver transações sincronizadas automaticamente.
 
-- [ ] **FASE-4-001** — Módulo Pluggy (NestJS)
+- [x] **FASE-4-001** — Módulo Pluggy (NestJS)
   Wrapper `PluggyService` para Pluggy API
   `POST /pluggy/connect-token`: connect token válido 30min
   `GET /pluggy/items`, `DELETE /pluggy/items/:id`, `POST /pluggy/items/:id/sync`
 
-- [ ] **FASE-4-002** — Webhook receiver Pluggy
+- [x] **FASE-4-002** — Webhook receiver Pluggy
   `POST /webhooks/pluggy`: validar signature, enfileirar job por evento
   Eventos: `item/updated` → sync · `item/error` → atualizar status + notificar
 
-- [ ] **FASE-4-003** — Sync Worker (BullMQ)
+- [x] **FASE-4-003** — Sync Worker (BullMQ)
   Fila `sync:pluggy`: buscar transações desde `lastSyncedAt`, normalizar, deduplicar
   `INSERT ON CONFLICT (pluggy_transaction_id) DO NOTHING`
   Atualizar saldos e `lastSyncedAt`
   Cron: a cada 6h enfileirar sync de todos os itens ativos
 
-- [ ] **FASE-4-004** — Categorização automática por IA
+- [x] **FASE-4-004** — Categorização automática por IA
   Batch de até 50 transações → Claude API → array de `{ id, categoryId }`
   Cache Redis: hash(descrição) → categoryId, TTL 30 dias
   Fallback heurístico: keyword matching se Claude offline
 
-- [ ] **FASE-4-005** — Pluggy Widget (Frontend)
+- [x] **FASE-4-005** — Pluggy Widget (Frontend)
   Componente `PluggyConnectWidget`: carrega SDK, busca connect token, abre modal
   Sucesso: toast + reload de contas
   Status de sincronização: spinner, "Atualizado há X min", banner de reconexão se erro
 
-- [ ] **FASE-4-006** — Commit da Fase 4
+- [x] **FASE-4-006** — Commit da Fase 4
 
   ```bash
   git add -A && git commit -m "feat(fase-4): pluggy open finance, sync worker, categorização IA"
