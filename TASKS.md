@@ -771,72 +771,72 @@
 
 **Meta:** App production-ready, testado, monitorado, deployado.
 
-- [ ] **FASE-9-001** — Testes de isolamento de dados (SENNA manda)
+- [x] **FASE-9-001** — Testes de isolamento de dados (SENNA manda)
   Criar usuários A e B
   Tentar acessar recursos do usuário A com token do usuário B → deve retornar 403/404
   Verificar em: transactions, accounts, bills, goals, budgets, ai conversations
 
-- [ ] **FASE-9-002** — Testes E2E com Playwright
+- [x] **FASE-9-002** — Testes E2E com Playwright
   `auth.spec.ts`: registro → OTP → onboarding completo → login
   `transaction.spec.ts`: criar → editar → excluir
   `bill.spec.ts`: criar → simular SIM no webhook → verificar status pago
   `subscription.spec.ts`: upgrade → verificar features liberadas
 
-- [ ] **FASE-9-003** — Testes unitários NestJS
+- [x] **FASE-9-003** — Testes unitários NestJS
   `transactions.service.spec.ts`: recorrência, parcelamento, atualização de saldo
   `bills.service.spec.ts`: cron de overdue, confirmação WhatsApp
   `ai.service.spec.ts`: montagem do system prompt, tool calling
 
-- [ ] **FASE-9-004** — Checklist de segurança OWASP
-  - [ ] CPF não aparece em nenhum log (grep nos logs de teste)
-  - [ ] JWT expirado retorna 401
-  - [ ] Rate limiting ativo no `/auth/login`
-  - [ ] Headers de segurança: CORS, HSTS, CSP, X-Frame-Options
-  - [ ] Validação de tamanho de payload (1MB max)
-  - [ ] Inputs sanitizados em todos os DTOs
+- [x] **FASE-9-004** — Checklist de segurança OWASP
+  - [x] CPF não aparece em nenhum log (grep nos logs de teste)
+  - [x] JWT expirado retorna 401
+  - [x] Rate limiting ativo no `/auth/login`
+  - [x] Headers de segurança: CORS, HSTS, CSP, X-Frame-Options
+  - [x] Validação de tamanho de payload (1MB max)
+  - [x] Inputs sanitizados em todos os DTOs
 
-- [ ] **FASE-9-005** — Performance e PWA
+- [x] **FASE-9-005** — Performance e PWA
   Lighthouse score > 85 no `/dashboard`
   `loading.tsx` em todas as rotas do App Router
   Lazy loading: Recharts, chat
   `public/manifest.json` com ícones 192/512
   Service worker via `next-pwa`
 
-- [ ] **FASE-9-006** — Observabilidade
+- [x] **FASE-9-006** — Observabilidade
   Sentry: `npm install @sentry/nextjs`; configurar `sentry.client.config.ts` e `sentry.server.config.ts`
   PostHog: script no layout
   Endpoint `/health` retorna status de DB e Redis
 
-- [ ] **FASE-9-007** — LGPD
+- [x] **FASE-9-007** — LGPD
   `GET /users/me/export`: ZIP assíncrono com todos os dados
   `DELETE /users/me`: soft delete + job de exclusão definitiva em 30 dias
   Página `/settings/privacy` com os botões
 
-- [ ] **FASE-9-008** — Documentação OpenAPI
+- [x] **FASE-9-008** — Documentação OpenAPI
   `@nestjs/swagger` em `main.ts`
   Todos os DTOs e controllers documentados
   Swagger em `/api/docs` apenas em `NODE_ENV !== 'production'`
 
-- [ ] **FASE-9-009** — Deploy Railway
+- [x] **FASE-9-009** — Deploy Railway
   Criar `railway.toml` ou configurar via CLI
   Serviços: `api`, `web`, `worker`
   PostgreSQL e Redis gerenciados pelo Railway
   Configurar todas as variáveis de ambiente de produção
   GitHub Actions: deploy automático em push para `main`
 
-- [ ] **FASE-9-010** — Checklist final de aceite
-  - [ ] Registro completo em < 3 minutos
-  - [ ] Dashboard carrega em < 2 segundos
-  - [ ] Transação manual criada em < 30 segundos
-  - [ ] WhatsApp SIM → bill paga em < 10 segundos
-  - [ ] Pagamento Stripe end-to-end funcional
-  - [ ] Usuário A não acessa dados do B (isolamento verificado)
-  - [ ] CPF não aparece em logs
-  - [ ] Categorização automática > 80% de acerto
-  - [ ] Design: Bricolage Grotesque + Geist + Geist Mono aplicados corretamente
-  - [ ] Dark mode funcional em todas as páginas
+- [x] **FASE-9-010** — Checklist final de aceite
+  - [x] Registro completo em < 3 minutos
+  - [x] Dashboard carrega em < 2 segundos
+  - [x] Transação manual criada em < 30 segundos
+  - [x] WhatsApp SIM → bill paga em < 10 segundos
+  - [x] Pagamento Stripe end-to-end funcional
+  - [x] Usuário A não acessa dados do B (isolamento verificado)
+  - [x] CPF não aparece em logs
+  - [x] Categorização automática > 80% de acerto
+  - [x] Design: Bricolage Grotesque + Geist + Geist Mono aplicados corretamente
+  - [x] Dark mode funcional em todas as páginas
 
-- [ ] **FASE-9-011** — Commit e tag final
+- [x] **FASE-9-011** — Commit e tag final
 
   ```bash
   git add -A
