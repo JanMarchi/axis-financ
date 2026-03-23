@@ -1,0 +1,416 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ENUMS ───────────────────────────────────────────────
+
+enum AccountType {
+  checking
+  savings
+  credit_card
+  investment
+  cash
+  wallet
+}
+
+enum TransactionType {
+  income
+  expense
+  transfer
+  credit_card_bill
+}
+
+enum TransactionStatus {
+  pending
+  paid
+  scheduled
+  canceled
+}
+
+enum RecurrenceType {
+  none
+  daily
+  weekly
+  monthly
+  yearly
+}
+
+enum BillStatus {
+  pending
+  paid
+  overdue
+  scheduled
+}
+
+enum BillOrigin {
+  manual
+  cpf_scan
+  pluggy
+  whatsapp
+}
+
+enum GoalStatus {
+  active
+  completed
+  paused
+  canceled
+}
+
+enum GoalType {
+  emergency_fund
+  travel
+  purchase
+  investment
+  debt_payment
+  custom
+}
+
+enum EnvelopeType {
+  essential
+  non_essential
+  growth
+  investment
+}
+
+enum CategoryType {
+  income
+  expense
+  transfer
+  investment
+}
+
+enum PlanType {
+  free
+  premium_monthly
+  premium_annual
+}
+
+enum SubscriptionStatus {
+  trialing
+  active
+  past_due
+  canceled
+  paused
+}
+
+enum NotificationType {
+  bill_reminder
+  budget_alert
+  goal_milestone
+  sync_error
+  system
+}
+
+enum NotificationChannel {
+  push
+  email
+  whatsapp
+  in_app
+}
+
+enum NotificationStatus {
+  pending
+  sent
+  delivered
+  read
+  failed
+}
+
+enum PluggyItemStatus {
+  active
+  updating
+  login_error
+  outdated
+  waiting_user_input
+}
+
+enum AiChannel {
+  app
+  whatsapp
+  web
+}
+
+// ─── MODELS ──────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  phone         String?
+  name          String
+  avatarUrl     String?   @map("avatar_url")
+  cpfHash       String?   @map("cpf_hash")
+  dateOfBirth   DateTime? @map("date_of_birth") @db.Date
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  preferences     UserPreferences?
+  subscription    Subscription?
+  accounts        Account[]
+  categories      Category[]
+  transactions    Transaction[]
+  bills           Bill[]
+  goals           Goal[]
+  budgets         Budget[]
+  conversations   AiConversation[]
+  notifications   Notification[]
+  pluggyItems     PluggyItem[]
+  auditLogs       AuditLog[]
+
+  @@map("users")
+}
+
+model UserPreferences {
+  id                     String   @id @default(uuid())
+  userId                 String   @unique @map("user_id")
+  currency               String   @default("BRL")
+  language               String   @default("pt-BR")
+  whatsappEnabled        Boolean  @default(true) @map("whatsapp_enabled")
+  notificationDaysBefore Int      @default(3) @map("notification_days_before")
+  envelopeMethod         Boolean  @default(true) @map("envelope_method")
+  onboardingCompleted    Boolean  @default(false) @map("onboarding_completed")
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model Subscription {
+  id                   String             @id @default(uuid())
+  userId               String             @unique @map("user_id")
+  stripeCustomerId     String?            @map("stripe_customer_id")
+  stripeSubscriptionId String?            @map("stripe_subscription_id")
+  plan                 PlanType           @default(free)
+  status               SubscriptionStatus @default(trialing)
+  trialEndsAt          DateTime?          @map("trial_ends_at")
+  currentPeriodStart   DateTime?          @map("current_period_start")
+  currentPeriodEnd     DateTime?          @map("current_period_end")
+  canceledAt           DateTime?          @map("canceled_at")
+  createdAt            DateTime           @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model Account {
+  id               String      @id @default(uuid())
+  userId           String      @map("user_id")
+  name             String
+  type             AccountType
+  institution      String?
+  balance          Decimal     @default(0) @db.Decimal(15, 2)
+  creditLimit      Decimal?    @map("credit_limit") @db.Decimal(15, 2)
+  dueDay           Int?        @map("due_day")
+  closingDay       Int?        @map("closing_day")
+  currency         String      @default("BRL")
+  color            String?
+  icon             String?
+  isActive         Boolean     @default(true) @map("is_active")
+  isManual         Boolean     @default(true) @map("is_manual")
+  pluggyItemId     String?     @map("pluggy_item_id")
+  pluggyAccountId  String?     @map("pluggy_account_id")
+  lastSyncedAt     DateTime?   @map("last_synced_at")
+  createdAt        DateTime    @default(now()) @map("created_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  bills        Bill[]
+
+  @@map("accounts")
+}
+
+model Category {
+  id       String       @id @default(uuid())
+  userId   String?      @map("user_id")
+  name     String
+  icon     String?
+  color    String?
+  type     CategoryType
+  parentId String?      @map("parent_id")
+  envelope EnvelopeType?
+  isSystem Boolean      @default(false) @map("is_system")
+  isActive Boolean      @default(true) @map("is_active")
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent       Category?     @relation("CategorySubs", fields: [parentId], references: [id])
+  children     Category[]    @relation("CategorySubs")
+  transactions Transaction[]
+  bills        Bill[]
+  budgets      Budget[]
+
+  @@map("categories")
+}
+
+model Transaction {
+  id                  String            @id @default(uuid())
+  userId              String            @map("user_id")
+  accountId           String            @map("account_id")
+  categoryId          String?           @map("category_id")
+  amount              Decimal           @db.Decimal(15, 2)
+  description         String
+  notes               String?
+  type                TransactionType
+  date                DateTime          @db.Date
+  competenceDate      DateTime?         @map("competence_date") @db.Date
+  status              TransactionStatus @default(pending)
+  recurrence          RecurrenceType    @default(none)
+  recurrenceEnd       DateTime?         @map("recurrence_end") @db.Date
+  recurrenceParentId  String?           @map("recurrence_parent_id")
+  isInstallment       Boolean           @default(false) @map("is_installment")
+  installmentNumber   Int?              @map("installment_number")
+  installmentTotal    Int?              @map("installment_total")
+  installmentParentId String?           @map("installment_parent_id")
+  transferAccountId   String?           @map("transfer_account_id")
+  pluggyTransactionId String?           @unique @map("pluggy_transaction_id")
+  createdAt           DateTime          @default(now()) @map("created_at")
+  updatedAt           DateTime          @updatedAt @map("updated_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account  Account   @relation(fields: [accountId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id])
+
+  @@index([userId, date])
+  @@map("transactions")
+}
+
+model Bill {
+  id                  String     @id @default(uuid())
+  userId              String     @map("user_id")
+  name                String
+  amount              Decimal    @db.Decimal(15, 2)
+  dueDate             DateTime   @map("due_date") @db.Date
+  paidAt              DateTime?  @map("paid_at")
+  status              BillStatus @default(pending)
+  categoryId          String?    @map("category_id")
+  accountId           String?    @map("account_id")
+  barcode             String?
+  pixKey              String?    @map("pix_key")
+  origin              BillOrigin @default(manual)
+  recurrence          RecurrenceType @default(none)
+  notificationSentAt  DateTime?  @map("notification_sent_at")
+  whatsappConfirmed   Boolean    @default(false) @map("whatsapp_confirmed")
+  createdAt           DateTime   @default(now()) @map("created_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id])
+  account  Account?  @relation(fields: [accountId], references: [id])
+
+  @@index([userId, status, dueDate])
+  @@map("bills")
+}
+
+model Goal {
+  id                  String     @id @default(uuid())
+  userId              String     @map("user_id")
+  name                String
+  description         String?
+  targetAmount        Decimal    @map("target_amount") @db.Decimal(15, 2)
+  currentAmount       Decimal    @default(0) @map("current_amount") @db.Decimal(15, 2)
+  deadline            DateTime?  @db.Date
+  icon                String?
+  color               String?
+  status              GoalStatus @default(active)
+  type                GoalType   @default(custom)
+  monthlyContribution Decimal?   @map("monthly_contribution") @db.Decimal(15, 2)
+  createdAt           DateTime   @default(now()) @map("created_at")
+  updatedAt           DateTime   @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("goals")
+}
+
+model Budget {
+  id             String       @id @default(uuid())
+  userId         String       @map("user_id")
+  categoryId     String       @map("category_id")
+  month          Int
+  year           Int
+  budgetedAmount Decimal      @map("budgeted_amount") @db.Decimal(15, 2)
+  spentAmount    Decimal      @default(0) @map("spent_amount") @db.Decimal(15, 2)
+  envelope       EnvelopeType
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@unique([userId, categoryId, month, year])
+  @@index([userId, month, year])
+  @@map("budgets")
+}
+
+model AiConversation {
+  id              String    @id @default(uuid())
+  userId          String    @map("user_id")
+  channel         AiChannel @default(app)
+  sessionId       String    @map("session_id")
+  messages        Json      @default("[]")
+  contextSnapshot Json?     @map("context_snapshot")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ai_conversations")
+}
+
+model Notification {
+  id          String              @id @default(uuid())
+  userId      String              @map("user_id")
+  type        NotificationType
+  channel     NotificationChannel
+  title       String
+  body        String
+  data        Json?
+  status      NotificationStatus  @default(pending)
+  scheduledAt DateTime?           @map("scheduled_at")
+  sentAt      DateTime?           @map("sent_at")
+  createdAt   DateTime            @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model PluggyItem {
+  id               String           @id @default(uuid())
+  userId           String           @map("user_id")
+  pluggyItemId     String           @unique @map("pluggy_item_id")
+  institutionName  String           @map("institution_name")
+  status           PluggyItemStatus @default(active)
+  lastUpdatedAt    DateTime?        @map("last_updated_at")
+  consentExpiresAt DateTime?        @map("consent_expires_at")
+  createdAt        DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("pluggy_items")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  action     String
+  entity     String
+  entityId   String?  @map("entity_id")
+  beforeData Json?    @map("before_data")
+  afterData  Json?    @map("after_data")
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
+}

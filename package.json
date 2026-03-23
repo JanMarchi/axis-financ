@@ -1,0 +1,20 @@
+{
+  "name": "mepoupe-plus",
+  "version": "0.1.0",
+  "description": "Plataforma SaaS de gestão financeira pessoal com IA copilota",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w apps/api & npm run dev -w apps/web",
+    "build": "npm run build -w apps/api && npm run build -w apps/web",
+    "test": "npm run test -w",
+    "lint": "npm run lint -w",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}
