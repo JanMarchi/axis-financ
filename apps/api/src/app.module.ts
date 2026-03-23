@@ -17,6 +17,7 @@ import { WorkersModule } from './workers/workers.module';
 import { AiModule } from './ai/ai.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { BillingModule } from './billing/billing.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { BillingModule } from './billing/billing.module';
     AiModule,
     NotificationsModule,
     BillingModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

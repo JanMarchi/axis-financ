@@ -741,25 +741,25 @@
 
 **Meta:** 6 relatórios visuais com dados reais e exportação PDF/CSV.
 
-- [ ] **FASE-8-001** — Engine de relatórios (NestJS)
+- [x] **FASE-8-001** — Engine de relatórios (NestJS)
   `ReportsService`: `getCashFlow()`, `getExpensesByCategory()`, `getNetWorthHistory()`, `getBudgetHistory()`
   Queries otimizadas com índices, máximo 12 meses
 
-- [ ] **FASE-8-002** — Gráficos (Frontend)
+- [x] **FASE-8-002** — Gráficos (Frontend)
   Recharts com tema dark (fundo transparente, grid bg-muted, tooltips bg-overlay)
   Bar chart (Fluxo de Caixa), Donut (Categorias), Line + Area (Patrimônio), Bar agrupado (Envelopes)
   Filtros de período e conta em todos os relatórios
 
-- [ ] **FASE-8-003** — Exportação PDF (Worker)
+- [x] **FASE-8-003** — Exportação PDF (Worker)
   Worker `reports:generate-pdf` com Puppeteer
   Template HTML com logo, dados do usuário, gráficos SVG
   Salvar no R2, notificar com link de download (válido 24h)
 
-- [ ] **FASE-8-004** — Exportação CSV
+- [x] **FASE-8-004** — Exportação CSV
   Stream direto: `GET /reports/export/csv?type=transactions&startDate&endDate`
   Colunas: data, descrição, categoria, conta, tipo, valor, status
 
-- [ ] **FASE-8-005** — Commit da Fase 8
+- [x] **FASE-8-005** — Commit da Fase 8
 
   ```bash
   git add -A && git commit -m "feat(fase-8): relatórios completos, PDF, CSV"

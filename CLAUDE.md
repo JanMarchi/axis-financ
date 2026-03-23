@@ -705,11 +705,11 @@ Fase 4 — Open Finance:  [x] ✅ CONCLUÍDO
 Fase 5 — WhatsApp:      [x] ✅ CONCLUÍDO
 Fase 6 — IA Na_th:      [x] ✅ CONCLUÍDO
 Fase 7 — Billing:       [x] ✅ CONCLUÍDO
-Fase 8 — Relatórios:    [ ] PENDENTE
+Fase 8 — Relatórios:    [x] ✅ CONCLUÍDO
 Fase 9 — QA/Deploy:     [ ] PENDENTE
 ```
 
-**Próxima task:** FASE-8-001 | **Erros ativos:** nenhum
+**Próxima task:** FASE-9-001 | **Erros ativos:** nenhum
 
 ---
 
