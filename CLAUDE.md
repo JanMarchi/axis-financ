@@ -700,7 +700,7 @@ TOOLS: get_financial_summary, get_transactions, create_transaction,
 Fase 0 — Setup:         [x] ✅ CONCLUÍDO
 Fase 1 — Design/UI:     [x] ✅ CONCLUÍDO
 Fase 2 — Auth:          [x] ✅ CONCLUÍDO
-Fase 3 — CRUD Core:     [ ] PENDENTE
+Fase 3 — CRUD Core:     [x] ✅ CONCLUÍDO
 Fase 4 — Open Finance:  [ ] PENDENTE
 Fase 5 — WhatsApp:      [ ] PENDENTE
 Fase 6 — IA Na_th:      [ ] PENDENTE
@@ -709,7 +709,7 @@ Fase 8 — Relatórios:    [ ] PENDENTE
 Fase 9 — QA/Deploy:     [ ] PENDENTE
 ```
 
-**Próxima task:** FASE-0-001 | **Erros ativos:** nenhum
+**Próxima task:** FASE-4-001 | **Erros ativos:** nenhum
 
 ---
 
