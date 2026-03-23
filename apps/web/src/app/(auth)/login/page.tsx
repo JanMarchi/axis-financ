@@ -3,10 +3,28 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Mail, Lock } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
 
 export default function LoginPage() {
+  const { login: loginUser } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      await loginUser(email, password);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao fazer login');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="w-full max-w-md">
@@ -14,7 +32,13 @@ export default function LoginPage() {
         <h1 className="text-3xl font-bold text-text-primary mb-2 text-center">Axis Finance</h1>
         <p className="text-center text-text-secondary mb-8">Organize. Economize. Invista.</p>
 
-        <form className="space-y-4 mb-6">
+        {error && (
+          <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-sm mb-4">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4 mb-6">
           <div>
             <label className="text-sm text-text-secondary mb-2 block">Email</label>
             <div className="flex items-center gap-3 px-4 py-2 rounded-input bg-bg-subtle border border-border-default">
@@ -43,8 +67,12 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <button className="w-full py-2 rounded-btn bg-brand-500 text-black font-medium hover:bg-brand-400 transition-all">
-            Entrar
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2 rounded-btn bg-brand-500 text-black font-medium hover:bg-brand-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
 

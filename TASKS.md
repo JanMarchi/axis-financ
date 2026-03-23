@@ -477,11 +477,11 @@
 
 **Meta:** Fluxo completo de registro → OTP → onboarding → dashboard.
 
-- [ ] **FASE-2-001** — Módulo Auth no NestJS
+- [x] **FASE-2-001** — Módulo Auth no NestJS
   Criar `apps/api/src/auth/` com: módulo, service, controller, JWT strategy, guard, decorator `@GetUser()`
   Rate limiting: 5 tentativas/15min em `/auth/login` via `@nestjs/throttler`
 
-- [ ] **FASE-2-002** — Endpoints de auth
+- [x] **FASE-2-002** — Endpoints de auth
 
   ```
   POST /auth/register   → cria user + subscription(free,trialing) + preferences
@@ -492,32 +492,32 @@
   POST /auth/reset-password
   ```
 
-- [ ] **FASE-2-003** — Supabase Auth no Next.js
+- [x] **FASE-2-003** — Supabase Auth no Next.js
   Instalar e configurar `@supabase/ssr`
   Criar `apps/web/src/lib/supabase/client.ts` e `server.ts`
   Criar `apps/web/src/middleware.ts`: proteger `(app)/*`, redirecionar por `onboarding_completed`
 
-- [ ] **FASE-2-004** — Form de Register funcional
+- [x] **FASE-2-004** — Form de Register funcional
   Conectar à `POST /api/auth/register` (via API Route Next.js como BFF)
   Validação zod: email válido, senha 8+ chars 1 maiúscula 1 número, nome obrigatório
   Feedback: toast de sucesso, erros inline por campo
 
-- [ ] **FASE-2-005** — Form de Login funcional
+- [x] **FASE-2-005** — Form de Login funcional
   Conectar à API, armazenar tokens em cookies, redirect para dashboard ou onboarding
   OAuth Google: configurar via Supabase
   "Esqueci a senha": fluxo completo
 
-- [ ] **FASE-2-006** — Onboarding steps funcionais
+- [x] **FASE-2-006** — Onboarding steps funcionais
   Cada step: `PATCH /api/onboarding/progress { step: N, data: {...} }`
   Estado do step salvo no banco — se fechar e reabrir, continua de onde parou
   Step final: `PATCH /api/onboarding/complete` → ativa trial 14 dias
 
-- [ ] **FASE-2-007** — Middleware de proteção de rotas
+- [x] **FASE-2-007** — Middleware de proteção de rotas
   Verificar JWT em todo request de `(app)/*`
   Verificar `onboarding_completed` → redirect se false
   Verificar plano para rotas premium → redirect com parâmetro `upgrade=true`
 
-- [ ] **FASE-2-008** — Commit da Fase 2
+- [x] **FASE-2-008** — Commit da Fase 2
 
   ```bash
   git add -A && git commit -m "feat(fase-2): auth completo supabase, onboarding 5 etapas"
