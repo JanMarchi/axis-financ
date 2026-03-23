@@ -697,8 +697,8 @@ TOOLS: get_financial_summary, get_transactions, create_transaction,
 ## 8. ESTADO ATUAL
 
 ```
-Fase 0 — Setup:         [ ] PENDENTE
-Fase 1 — Design/UI:     [ ] PENDENTE
+Fase 0 — Setup:         [x] ✅ CONCLUÍDO
+Fase 1 — Design/UI:     [x] ✅ CONCLUÍDO
 Fase 2 — Auth:          [ ] PENDENTE
 Fase 3 — CRUD Core:     [ ] PENDENTE
 Fase 4 — Open Finance:  [ ] PENDENTE

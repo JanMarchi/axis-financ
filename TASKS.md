@@ -309,7 +309,7 @@
 
 **Meta:** Todas as páginas navegáveis com design premium. Sem dados reais ainda.
 
-- [ ] **FASE-1-001** — Componentes de design base
+- [x] **FASE-1-001** — Componentes de design base
   Criar `apps/web/src/components/ui/money-display.tsx`:
 
   ```tsx
@@ -323,7 +323,7 @@
   Criar `apps/web/src/components/ui/status-badge.tsx` — badge colorido por status
   Criar `apps/web/src/components/ui/page-header.tsx` — título Bricolage + breadcrumb + ação
 
-- [ ] **FASE-1-002** — Layout da sidebar
+- [x] **FASE-1-002** — Layout da sidebar
   Criar `apps/web/src/components/layout/sidebar.tsx`:
   - Logo "Axis Finance" — Bricolage Grotesque 600, "+" em brand-500
   - Nav links com ícones Lucide: Dashboard, Transações, Contas, Orçamento, Metas, Contas a Pagar, Chat Na_th, Relatórios, Configurações
@@ -331,14 +331,14 @@
   - Footer: avatar + nome + badge plano + CTA upgrade (pulse animation) se free
   - Responsivo: oculta labels em < 768px, mostra só ícones
 
-- [ ] **FASE-1-003** — Layout principal autenticado
+- [x] **FASE-1-003** — Layout principal autenticado
   Criar `apps/web/src/app/(app)/layout.tsx`:
   - Sidebar fixa à esquerda (240px)
   - Header fixo no topo: saudação + data + notificações + avatar
   - Main content: padding responsivo, scroll independente
   - Usar `framer-motion` `AnimatePresence` para transição entre páginas
 
-- [ ] **FASE-1-004** — Dashboard page
+- [x] **FASE-1-004** — Dashboard page
   Criar `apps/web/src/app/(app)/dashboard/page.tsx`:
 
   **Card Saldo Total** (2 colunas de largura):
@@ -374,7 +374,7 @@
 
   Todos os cards com: `motion.div` fadeUp, stagger entre cards
 
-- [ ] **FASE-1-005** — Transactions page
+- [x] **FASE-1-005** — Transactions page
   Criar `apps/web/src/app/(app)/transactions/page.tsx`:
   - Header com filtros: DateRangePicker, Select de conta, Select de categoria, Select de tipo
   - Tabela dark: header bg-muted, rows bg-elevated hover bg-overlay
@@ -382,14 +382,14 @@
   - FAB "+" fixo canto inferior direito: brand-500, sombra glow verde
   - Modal `TransactionModal` com todos os campos
 
-- [ ] **FASE-1-006** — Accounts page
+- [x] **FASE-1-006** — Accounts page
   Criar `apps/web/src/app/(app)/accounts/page.tsx`:
   - Agrupamento por tipo com header da seção
   - Cada conta: card com ícone da instituição (cor configurável), nome, saldo grande (Geist Mono)
   - Badge "Open Finance" vs "Manual"
   - Botões: "+ Conectar banco" (brand-500), "+ Adicionar manual" (ghost)
 
-- [ ] **FASE-1-007** — Budget page
+- [x] **FASE-1-007** — Budget page
   Criar `apps/web/src/app/(app)/budget/page.tsx`:
   - Seletor mês/ano com chevrons de navegação
   - 4 seções de envelopes com cor temática
@@ -397,20 +397,20 @@
   - Subcategorias expandíveis
   - Indicador de saúde: ✅ dentro do orçamento, ⚠️ acima de 80%, 🔴 acima de 100%
 
-- [ ] **FASE-1-008** — Goals page
+- [x] **FASE-1-008** — Goals page
   Criar `apps/web/src/app/(app)/goals/page.tsx`:
   - Grid de cards de metas
   - Cada meta: ícone emoji grande, nome, valor atual/alvo (Geist Mono), progress bar circular (SVG), deadline, % concluído
   - Botão "Nova Meta" no header
 
-- [ ] **FASE-1-009** — Bills page
+- [x] **FASE-1-009** — Bills page
   Criar `apps/web/src/app/(app)/bills/page.tsx`:
   - Layout duplo: calendário à esquerda + lista à direita
   - Calendário: dias com contas têm indicador de cor (verde=pago, vermelho=vencido, azul=pendente)
   - Lista filtrada por status com tabs (Tudo / Pendente / Vencido / Pago)
   - Cada bill: nome, valor (Geist Mono), data vencimento, status badge
 
-- [ ] **FASE-1-010** — Chat page
+- [x] **FASE-1-010** — Chat page
   Criar `apps/web/src/app/(app)/chat/page.tsx`:
   - Layout de messaging full-height
   - Header: avatar Na_th + "Na_th · Copilota Financeira" + badge online
@@ -420,7 +420,7 @@
   - Input fixo no bottom: bg-subtle, border, placeholder "Pergunte à Na_th..."
   - Welcome state: cards de sugestão "Como estou esse mês?", "Análise dos gastos", "Criar meta"
 
-- [ ] **FASE-1-011** — Reports page
+- [x] **FASE-1-011** — Reports page
   Criar `apps/web/src/app/(app)/reports/page.tsx`:
   - Tabs estilizadas: Fluxo de Caixa · Por Categoria · Patrimônio · Envelopes
   - Recharts dark theme: background transparente, grid lines bg-muted, tooltips bg-overlay
@@ -429,7 +429,7 @@
   - Line chart (Patrimônio): linha brand-500, área fill brand-glow
   - Botão "Exportar PDF" e "Exportar CSV" no header
 
-- [ ] **FASE-1-012** — Auth pages
+- [x] **FASE-1-012** — Auth pages
   Criar páginas em `apps/web/src/app/(auth)/`:
 
   **Login** (`login/page.tsx`):
@@ -445,7 +445,7 @@
 
   **Forgot/Reset**: formulários simples e limpos
 
-- [ ] **FASE-1-013** — Onboarding wizard
+- [x] **FASE-1-013** — Onboarding wizard
   Criar `apps/web/src/app/(auth)/onboarding/layout.tsx`:
   - Progress bar no topo: 5 etapas, brand-500 como fill
   - Logo centralizado
@@ -458,12 +458,12 @@
   - `step-4/`: escolha "Adicionar manual" vs "Conectar banco" (placeholder Pluggy)
   - `step-5/`: tour dos envelopes com porcentagens + donut animado + botão "Começar"
 
-- [ ] **FASE-1-014** — Loading e empty states globais
+- [x] **FASE-1-014** — Loading e empty states globais
   Criar variantes de skeleton para: card de saldo, lista de transações, card de conta
   Criar empty states para: sem transações, sem contas, sem metas, sem contas a pagar
   Todos com ilustração SVG inline estilizada com brand colors
 
-- [ ] **FASE-1-015** — Commit da Fase 1
+- [x] **FASE-1-015** — Commit da Fase 1
 
   ```bash
   git add -A && git commit -m "feat(fase-1): design system premium, layout completo, todas as páginas"
